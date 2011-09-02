@@ -1,0 +1,14 @@
+/*!
+ \mainpage bRopo - a baltrad version of the FMI developed detector framework ropo
+
+
+ \section Introduction
+ bRopo is an adaption of the existing FMI software package ROPO. The bRopo is adapted
+ to integrate with the RAVE framework and also to provide users with a python
+ interface.   
+
+
+*/
+  
+  
+

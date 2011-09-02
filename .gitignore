@@ -1,0 +1,11 @@
+*.o
+*.so
+*.a
+.cproject
+.project
+.pydevproject
+Debug/
+*~
+*.pyc
+
+

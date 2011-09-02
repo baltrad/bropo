@@ -1,0 +1,75 @@
+Install instructions for bRack (Baltrad RACK)
+
+Anders Henja
+Swedish Meteorological and Hydrological Institute
+
+INTRODUCTION
+bRack is a baltrad adaption of the 'DRAIN' and 'RACK' that
+is a radar data processing system.
+
+REQUIREMENTS
+
+Before installing bRack a number of modules/software packages have to be
+installed (and their dependencies). But in short, if you have got the
+following packages installed you should be good to go.
+- a (Gnu) C++ compiler
+- GNU make
+- Python 2.6 final or 2.7.x, but not 3.x
+- Rave (at least build hudson-Rave-172-SUCCESS)
+- libpng12.so PNG image files
+
+Optionally you can also build with Magick++ to get support for several image file formats
+- Magick++ (Magick++-config, libMagick++.so) 
+
+PREPARATION
+Rave has it's own installation instructions so follow them in order to get the
+rave package in place.
+
+PNG12 can usually be installed as a package, in some debian based linuces it can be
+installed with
+%> sudo apt-get install libpng12-0
+
+If you want to install Magick++ in for example ubuntu, you can install it with 
+%> sudo apt-get install libmagick++-dev
+
+BUILDING
+The building is performed with the traditional ./configure; make; make install.
+
+The simplest way to configure bRack is to ensure that you have access to rave
+through python and then let ./configure atempt to identify the rave software.
+I.e. if you can do the following you might be lucky:
+%> python -c "import _rave;print _rave.__file__"
+/opt/baltrad/rave/Lib/_rave.so
+
+If not, you probably need to use the configure argument for rave together with
+png and magick++.
+
+CONFIGURE ARGUMENTS
+--prefix=ROOT                 This is the root directory of the brack installation. [default /opt/baltrad/brack]
+
+--with-rave=ROOT              Points out the rave root directory (default 'yes')
+  
+--with-png=ROOT or INC,LIB    Points out the png root installation or include, library paths (default 'yes')
+
+--with-magick=BIN             The Magick++-config binary (default 'no')
+
+Example usage:
+%> ./configure --prefix=/opt/brack --with-rave=yes --with-png=/opt/png12/include,/opt/lib --with-magick=yes
+
+or
+
+%> ./configure --prefix=/opt/brack
+
+MAKE
+Just run make
+
+%> make
+
+INSTALL
+Installation is performed with
+
+%> make install
+
+Hopefully you are finished now and are able to use the software.
+
+

@@ -1,0 +1,100 @@
+###########################################################################
+# Copyright (C) 2011 Swedish Meteorological and Hydrological Institute, SMHI,
+#
+# This file is part of bRopo.
+#
+# bRopo is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# bRopo is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public License
+# along with RAVE.  If not, see <http://www.gnu.org/licenses/>.
+# ------------------------------------------------------------------------
+# 
+# bRopo make file
+# @file
+# @author Anders Henja (Swedish Meteorological and Hydrological Institute, SMHI)
+# @date 2011-08-26
+###########################################################################
+-include ../def.mk
+
+
+# Ropo specific c flags
+#
+CFLAGS= $(SHARED_FLAG) $(CCOPTS) $(DEFS) -I../ropo -I. $(PNG_INCLUDE_DIR) \
+			$(RAVE_INCLUDE_FLAG) $(HLHDF_INCLUDE_FLAG) $(ZLIB_INCDIR) \
+			$(HDF5_INCDIR) $(PROJ_INCLUDE_FLAG)
+
+# Linker flags
+#
+LDFLAGS= -L../ropo -L. $(PNG_LIB_DIR) $(RAVE_LIB_FLAG) $(HLHDF_LIBRARY_FLAG) $(ZLIB_LIBDIR) \
+			$(HDF5_LIBDIR) $(PROJ_LIB_FLAG) 
+
+# We also need to ensure that raves expat requirements are managed
+EXPAT_LIBRARY=
+ifeq ($(EXPAT_SUPPRESSED), no)
+CFLAGS+= $(EXPAT_INCLUDE_DIR) -DRAVE_XML_SUPPORTED
+LDFLAGS+= $(EXPAT_LIB_DIR)
+EXPAT_LIBRARY=-lexpat
+endif
+
+# --------------------------------------------------------------------
+# Fixed definitions
+
+SOURCES= ropo.c 
+
+OBJECTS= $(SOURCES:.c=.o)
+TARGET= bropo
+
+MAKECDEPEND=$(CC) -MM $(CFLAGS) -MT '$(@F)' -o $(DF).d $<
+
+DEPDIR=.dep
+DF=$(DEPDIR)/$(*F)
+
+# Ensures that the .dep directory exists
+.PHONY=$(DEPDIR)
+$(DEPDIR):
+	+@[ -d $@ ] || mkdir -p $@
+
+# And the rest of the make file targets
+#
+.PHONY=all
+all:		$(TARGET)
+
+$(TARGET): $(DEPDIR) $(OBJECTS) ../ropo/libbropo.so
+	$(LDSHARED) -o $@ $(LDFLAGS) $(OBJECTS)
+
+.PHONY=install
+install:
+	@mkdir --parents ${prefix}/bin/
+	@cp -v -u $(TARGET) ${prefix}/bin/
+
+.PHONY=clean
+clean:
+	@\rm -f *.o core *~
+	@\rm -fr $(DEPDIR)
+
+.PHONY=distclean		 
+distclean:	clean
+	@\rm -f $(TARGET)
+
+# --------------------------------------------------------------------
+# Rules
+
+%.o : %.c
+	@$(MAKECDEPEND); \
+	cp $(DF).d $(DF).P; \
+	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+		-e '/^$$/ d' -e 's/$$/ :/' < $(DF).d >> $(DF).P; \
+	\rm -f $(DF).d
+	$(CC) -c $(CFLAGS) $< -o $@
+
+
+# NOTE! This ensures that the dependencies are setup at the right time so this should not be moved
+-include $(SOURCES:%.c=$(DEPDIR)/%.P)

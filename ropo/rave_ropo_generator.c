@@ -67,6 +67,7 @@ static const char RopoGenerator_EMITTER2_STR[] = "EMITTER2:";
 static const char RopoGenerator_CLUTTER_STR[] = "CLUTTER:";
 static const char RopoGenerator_CLUTTER2_STR[] = "CLUTTER2:";
 static const char RopoGenerator_SPECK_STR[] = "SPECK:";
+static const char RopoGenerator_SPECKNORMOLD_STR[] = "SPECKNORMOLD:";
 static const char RopoGenerator_DOPPLER_STR[] = "DOPPLER:";
 static const char RopoGenerator_GROUND_STR[] = "GROUND:";
 static const char RopoGenerator_METEOSAT_STR[] = "METEOSAT:";
@@ -96,6 +97,7 @@ static const struct RopoGenerator_PgmCodeMapping PGM_CODE_MAPPING[] =
   {CLUTTER,  RopoGenerator_CLUTTER_STR},
   {CLUTTER2,  RopoGenerator_CLUTTER2_STR},
   {SPECK,  RopoGenerator_SPECK_STR},
+  {SPECK, RopoGenerator_SPECKNORMOLD_STR},
   {DOPPLER,  RopoGenerator_DOPPLER_STR},
   {METEOSAT,  RopoGenerator_METEOSAT_STR},
   {THRESH1,  RopoGenerator_THRESH1_STR},
@@ -201,7 +203,7 @@ done:
   return result;
 }
 
-static int RaveRopoGeneratorInternal_addProbabilityTaskArgs(RaveFmiImage_t* image, RaveObjectList_t* probs)
+static int RaveRopoGeneratorInternal_addProbabilityTaskArgs(RaveFmiImage_t* image, RaveObjectList_t* probs, const char* fmt, ...)
 {
   RaveFmiImage_t* field = NULL;
   RaveAttribute_t* attr = NULL;
@@ -209,9 +211,21 @@ static int RaveRopoGeneratorInternal_addProbabilityTaskArgs(RaveFmiImage_t* imag
   int i = 0;
   int result = 0;
   char pstr[1024];
+  char fmtstring[1024];
+  va_list ap;
+  int n = 0;
 
   RAVE_ASSERT((image != NULL), "image == NULL");
   RAVE_ASSERT((probs != NULL), "probs == NULL");
+  RAVE_ASSERT((fmt != NULL), "fmt == NULL");
+
+  va_start(ap, fmt);
+  n = vsnprintf(fmtstring, 1024, fmt, ap);
+  va_end(ap);
+  if (n < 0 || n >= 1024) {
+    RAVE_ERROR0("Failed to generate name");
+    goto done;
+  }
 
   memset(pstr, '\0', 1024);
 
@@ -227,10 +241,21 @@ static int RaveRopoGeneratorInternal_addProbabilityTaskArgs(RaveFmiImage_t* imag
       if (strlen(pstr) > 0) {
         strcat(pstr, ";");
         strcat(pstr, attrstr);
+      } else {
+        strcpy(pstr, attrstr);
       }
     }
     RAVE_OBJECT_RELEASE(attr);
     RAVE_OBJECT_RELEASE(field);
+  }
+
+  if (strlen(fmtstring) > 0) {
+    if (strlen(pstr) > 0) {
+      strcat(pstr, ";");
+      strcat(pstr, fmtstring);
+    } else {
+      strcpy(pstr, fmtstring);
+    }
   }
 
   attr = RaveAttributeHelp_createString("how/task_args", pstr);
@@ -300,7 +325,7 @@ RaveFmiImage_t* RaveRopoGenerator_getImage(RaveRopoGenerator_t* self)
   return RAVE_OBJECT_COPY(self->image);
 }
 
-int RaveRopoGenerator_speck(RaveRopoGenerator_t* self, int intensity, int sz)
+int RaveRopoGenerator_speck(RaveRopoGenerator_t* self, int minDbz, int maxA)
 {
   RaveFmiImage_t* probability = NULL;
 
@@ -320,15 +345,16 @@ int RaveRopoGenerator_speck(RaveRopoGenerator_t* self, int intensity, int sz)
   }
 
   if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
-      !RaveRopoGeneratorInternal_addTaskArgs(probability, "SPECK: %d,%d",intensity, sz)) {
+      !RaveRopoGeneratorInternal_addTaskArgs(probability, "SPECK: %d,%d",minDbz, maxA)) {
     RAVE_CRITICAL0("Failed to add task arguments");
     goto done;
   }
 
   detect_specks(RaveFmiImage_getImage(self->image),
                 RaveFmiImage_getImage(probability),
-                intensity, histogram_area);
-  semisigmoid_image(RaveFmiImage_getImage(probability), sz);
+                abs_dbz_to_byte(minDbz),
+                histogram_area);
+  semisigmoid_image(RaveFmiImage_getImage(probability), maxA);
   invert_image(RaveFmiImage_getImage(probability));
   translate_intensity(RaveFmiImage_getImage(probability), 255, 0);
 
@@ -343,7 +369,7 @@ done:
   return result;
 }
 
-int RaveRopoGenerator_emitter(RaveRopoGenerator_t* self, int intensity, int sz)
+int RaveRopoGenerator_speckNormOld(RaveRopoGenerator_t* self, int minDbz, int maxA, int maxN)
 {
   RaveFmiImage_t* probability = NULL;
 
@@ -363,14 +389,19 @@ int RaveRopoGenerator_emitter(RaveRopoGenerator_t* self, int intensity, int sz)
   }
 
   if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
-      !RaveRopoGeneratorInternal_addTaskArgs(probability, "EMITTER: %d,%d",intensity, sz)) {
+      !RaveRopoGeneratorInternal_addTaskArgs(probability, "SPECKNORMOLD: %d,%d,%d",minDbz, maxA, maxN)) {
     RAVE_CRITICAL0("Failed to add task arguments");
     goto done;
   }
 
-  detect_emitters(RaveFmiImage_getImage(self->image),
-                  RaveFmiImage_getImage(probability),
-                  intensity, sz);
+  detect_specks(RaveFmiImage_getImage(self->image),
+		  	    RaveFmiImage_getImage(probability),
+		  	    abs_dbz_to_byte(minDbz),
+		  	    histogram_area);
+  distance_compensation_mul(RaveFmiImage_getImage(probability), maxN);
+  semisigmoid_image(RaveFmiImage_getImage(probability),maxA);
+  invert_image(RaveFmiImage_getImage(probability));
+  translate_intensity(RaveFmiImage_getImage(probability),255,0);
 
   if (!RaveObjectList_add(self->probabilities, (RaveCoreObject*)probability)) {
     RAVE_ERROR0("Failed to add probability field to probabilities");
@@ -382,6 +413,90 @@ done:
   RAVE_OBJECT_RELEASE(probability);
   return result;
 }
+
+int RaveRopoGenerator_emitter(RaveRopoGenerator_t* self, int minDbz, int length)
+{
+  RaveFmiImage_t* probability = NULL;
+
+  int result = 0;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  if (self->image == NULL) {
+    RAVE_ERROR0("Calling speck when there is no image to operate on?");
+    goto done;
+  }
+
+  probability = RAVE_OBJECT_CLONE(self->image);
+  if (probability == NULL) {
+    RAVE_CRITICAL0("Failed to clone image");
+    goto done;
+  }
+
+  if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
+      !RaveRopoGeneratorInternal_addTaskArgs(probability, "EMITTER: %d,%d",minDbz, length)) {
+    RAVE_CRITICAL0("Failed to add task arguments");
+    goto done;
+  }
+
+  detect_emitters(RaveFmiImage_getImage(self->image),
+                  RaveFmiImage_getImage(probability),
+                  abs_dbz_to_byte(minDbz), length);
+
+  if (!RaveObjectList_add(self->probabilities, (RaveCoreObject*)probability)) {
+    RAVE_ERROR0("Failed to add probability field to probabilities");
+    goto done;
+  }
+
+  result = 1;
+done:
+  RAVE_OBJECT_RELEASE(probability);
+  return result;
+}
+
+int RaveRopoGenerator_emitter2(RaveRopoGenerator_t* self, int minDbz, int length, int width)
+{
+  RaveFmiImage_t* probability = NULL;
+
+  int result = 0;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  if (self->image == NULL) {
+    RAVE_ERROR0("Calling speck when there is no image to operate on?");
+    goto done;
+  }
+
+  probability = RAVE_OBJECT_CLONE(self->image);
+  if (probability == NULL) {
+    RAVE_CRITICAL0("Failed to clone image");
+    goto done;
+  }
+
+  if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
+      !RaveRopoGeneratorInternal_addTaskArgs(probability, "EMITTER2: %d,%d,%d",minDbz, length, width)) {
+    RAVE_CRITICAL0("Failed to add task arguments");
+    goto done;
+  }
+
+  detect_emitters2(RaveFmiImage_getImage(self->image),
+                   RaveFmiImage_getImage(probability),
+                   abs_dbz_to_byte(minDbz),
+                   length,
+                   width);
+
+  if (!RaveObjectList_add(self->probabilities, (RaveCoreObject*)probability)) {
+    RAVE_ERROR0("Failed to add probability field to probabilities");
+    goto done;
+  }
+
+  result = 1;
+done:
+  RAVE_OBJECT_RELEASE(probability);
+  return result;
+}
+
+//specknorm_old, clutter, clutter2, ground, ground2, softcut, biomet, ship, xemitter0, sun, sun2, doppler,
 
 int RaveRopoGenerator_classify(RaveRopoGenerator_t* self)
 {
@@ -429,14 +544,14 @@ int RaveRopoGenerator_classify(RaveRopoGenerator_t* self)
     RAVE_OBJECT_RELEASE(image);
   }
 
-  if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector_classification") ||
-      !RaveRopoGeneratorInternal_addProbabilityTaskArgs(probability, self->probabilities)) {
+  if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector.classification") ||
+      !RaveRopoGeneratorInternal_addProbabilityTaskArgs(probability, self->probabilities, "")) {
     RAVE_CRITICAL0("Failed to add task arguments");
     goto done;
   }
 
-  if (!RaveRopoGeneratorInternal_addTask(markers, "fi.fmi.ropo.detector_classification_marker") ||
-      !RaveRopoGeneratorInternal_addProbabilityTaskArgs(markers, self->probabilities)) {
+  if (!RaveRopoGeneratorInternal_addTask(markers, "fi.fmi.ropo.detector.classification_marker") ||
+      !RaveRopoGeneratorInternal_addProbabilityTaskArgs(markers, self->probabilities, "")) {
     RAVE_CRITICAL0("Failed to add task arguments");
     goto done;
   }
@@ -470,6 +585,12 @@ RaveFmiImage_t* RaveRopoGenerator_restore(RaveRopoGenerator_t* self, int thresho
   }
 
   RaveFmiImage_clear(restored, CLEAR);
+
+  if (!RaveRopoGeneratorInternal_addTask(restored, "fi.fmi.ropo.restore") ||
+      !RaveRopoGeneratorInternal_addProbabilityTaskArgs(restored, self->probabilities, "RESTORE_THRESH: %d",threshold)) {
+    RAVE_CRITICAL0("Failed to add task arguments");
+    goto done;
+  }
 
   restore_image(RaveFmiImage_getImage(self->image),
                 RaveFmiImage_getImage(restored),

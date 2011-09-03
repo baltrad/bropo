@@ -336,8 +336,10 @@ PolarScan_t* RaveFmiImage_toPolarScan(RaveFmiImage_t* self, const char* quantity
 {
   PolarScan_t* result = NULL;
   PolarScan_t* scan = NULL;
+  RaveObjectList_t* attributes = NULL;
 
   int i = 0;
+  int nrAttrs = 0;
 
   RAVE_ASSERT((self != NULL), "self == NULL");
 
@@ -347,8 +349,21 @@ PolarScan_t* RaveFmiImage_toPolarScan(RaveFmiImage_t* self, const char* quantity
     goto done;
   }
 
+  attributes = RaveObjectHashTable_values(self->attrs);
+  if (attributes == NULL) {
+    RAVE_CRITICAL0("Failed to get attributes");
+    goto done;
+  }
+  nrAttrs = RaveObjectList_size(attributes);
+  for (i = 0; i < nrAttrs; i++) {
+    RaveAttribute_t* attr = (RaveAttribute_t*)RaveObjectList_get(attributes, i);
+    PolarScan_addAttribute(scan, attr);
+    RAVE_OBJECT_RELEASE(attr);
+  }
+
   result = RAVE_OBJECT_COPY(scan);
 done:
+  RAVE_OBJECT_RELEASE(attributes);
   RAVE_OBJECT_RELEASE(scan);
   return result;
 }
@@ -357,8 +372,10 @@ RaveField_t* RaveFmiImage_toRaveField(RaveFmiImage_t* self)
 {
   RaveField_t* result = NULL;
   RaveField_t* field = NULL;
+  RaveObjectList_t* attributes = NULL;
 
   int i = 0;
+  int nrAttrs = 0;
 
   RAVE_ASSERT((self != NULL), "self == NULL");
 
@@ -368,8 +385,22 @@ RaveField_t* RaveFmiImage_toRaveField(RaveFmiImage_t* self)
     goto done;
   }
 
+  attributes = RaveObjectHashTable_values(self->attrs);
+  if (attributes == NULL) {
+    RAVE_CRITICAL0("Failed to get attributes");
+    goto done;
+  }
+
+  nrAttrs = RaveObjectList_size(attributes);
+  for (i = 0; i < nrAttrs; i++) {
+    RaveAttribute_t* attr = (RaveAttribute_t*)RaveObjectList_get(attributes, i);
+    RaveField_addAttribute(field, attr);
+    RAVE_OBJECT_RELEASE(attr);
+  }
+
   result = RAVE_OBJECT_COPY(field);
 done:
+  RAVE_OBJECT_RELEASE(attributes);
   RAVE_OBJECT_RELEASE(field);
   return result;
 }

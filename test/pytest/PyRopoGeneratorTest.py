@@ -29,7 +29,7 @@ class PyRopoGeneratorTest(unittest.TestCase):
     if os.path.isfile(self.TEMPORARY_FILE):
       os.unlink(self.TEMPORARY_FILE)
     if os.path.isfile(self.TEMPORARY_FILE2):
-      os.unlink(self.TEMPORARY_FILE2)  
+     os.unlink(self.TEMPORARY_FILE2)  
   
   def testNew(self):
     a = _ropogenerator.new()
@@ -62,7 +62,27 @@ class PyRopoGeneratorTest(unittest.TestCase):
     output.filename = self.TEMPORARY_FILE
     output.save()
 
+  def testSpeckNormOld(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    b.speckNormOld(-20, 5, 16);
+    
+    output = _raveio.new()
+    output.object = b.getImage().toPolarScan("DBZH")
+    output.filename = self.TEMPORARY_FILE
+    output.save()
+
   def testEmitter(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    b.speck(3, 6);
+    
+    output = _raveio.new()
+    output.object = b.getImage().toPolarScan("DBZH")
+    output.filename = self.TEMPORARY_FILE
+    output.save()
+
+  def testEmitter2(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
     b.speck(3, 6);
@@ -111,7 +131,9 @@ class PyRopoGeneratorTest(unittest.TestCase):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
 
-    classification = b.speck(-20, 5).emitter(3, 6).classify().classification.toRaveField()
+    b.speck(-20, 5).speckNormOld(-20,5,16).emitter(-20, 4).emitter2(-10,4,2)
+
+    classification = b.classify().classification.toRaveField()
     restored = b.restore(50).toRaveField()
     
     a.addQualityField(classification)
@@ -119,7 +141,7 @@ class PyRopoGeneratorTest(unittest.TestCase):
     
     output = _raveio.new()
     output.object = a
-    output.filename = self.TEMPORARY_FILE
+    output.filename = self.TEMPORARY_FILE2
     output.save()
       
 if __name__ == "__main__":

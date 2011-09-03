@@ -56,14 +56,49 @@ void RaveRopoGenerator_setImage(RaveRopoGenerator_t* self, RaveFmiImage_t* image
 RaveFmiImage_t* RaveRopoGenerator_getImage(RaveRopoGenerator_t* self);
 
 /**
+ * Threshold by min dBz, detect specks < A
+ * Example: -20dBz     5pix
  *
+ * @param[in] self - self
+ * @param[in] minDbz - min dbz
+ * @param[in] maxA - max A
+ * @return 1 on success otherwise 0
  */
-int RaveRopoGenerator_speck(RaveRopoGenerator_t* self, int intensity, int sz);
+int RaveRopoGenerator_speck(RaveRopoGenerator_t* self, int minDbz, int maxA);
 
 /**
+ * Threshold by min dBz, then detect specks, size A_max_range <=> size N*A A.
+ * Example:  -20dBz   5pix  16
  *
+ * @param[in] self - self
+ * @param[in] minDbz - min dbz
+ * @param[in] maxA - max A
+ * @param[in] maxN - max N
+ * @return 1 on success otherwise 0
  */
-int RaveRopoGenerator_emitter(RaveRopoGenerator_t* self, int intensity, int sz);
+int RaveRopoGenerator_speckNormOld(RaveRopoGenerator_t* self, int minDbz, int maxA, int maxN);
+
+/**
+ * Filter unity-width emitter lines.
+ * Example: -10dbz 4
+ * @param[in] self - self
+ * @param[in] minDbz - min dbz
+ * @param[in] length - length
+ * @return 1 on success otherwise 0
+ */
+int RaveRopoGenerator_emitter(RaveRopoGenerator_t* self, int minDbz, int length);
+
+/**
+ * Filter emitter lines.
+ * Example: -10dbz, 4 bins, 2
+ *
+ * @param[in] self - self
+ * @param[in] minDbz - min dbz
+ * @param[in] length - the bin length
+ * @param[in] width - the width
+ * @return 1 on success otherwise 0
+ */
+int RaveRopoGenerator_emitter2(RaveRopoGenerator_t* self, int minDbz, int length, int width);
 
 /**
  * Updates the classifications with the currently kept probability fields

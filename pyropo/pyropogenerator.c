@@ -194,24 +194,49 @@ static PyObject* _pyropogenerator_setImage(PyRopoGenerator* self, PyObject* args
 
 static PyObject* _pyropogenerator_speck(PyRopoGenerator* self, PyObject* args)
 {
-  int intensity = 0, sz = 0;
-  if (!PyArg_ParseTuple(args, "ii", &intensity, &sz)) {
+  int minDbz = 0, maxA = 0;
+  if (!PyArg_ParseTuple(args, "ii", &minDbz, &maxA)) {
     return NULL;
   }
-  if (!RaveRopoGenerator_speck(self->generator, intensity, sz)) {
+  if (!RaveRopoGenerator_speck(self->generator, minDbz, maxA)) {
     raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to run speck");
   }
   return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
 }
 
-static PyObject* _pyropogenerator_emitter(PyRopoGenerator* self, PyObject* args)
+static PyObject* _pyropogenerator_speckNormOld(PyRopoGenerator* self, PyObject* args)
 {
-  int intensity = 0, sz = 0;
-  if (!PyArg_ParseTuple(args, "ii", &intensity, &sz)) {
+  int minDbz = 0, maxA = 0, maxN = 0;
+  if (!PyArg_ParseTuple(args, "iii", &minDbz, &maxA, &maxN)) {
     return NULL;
   }
-  if (!RaveRopoGenerator_emitter(self->generator, intensity, sz)) {
+  if (!RaveRopoGenerator_speckNormOld(self->generator, minDbz, maxA, maxN)) {
+    raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to run speckNormOld");
+  }
+  return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
+}
+
+
+static PyObject* _pyropogenerator_emitter(PyRopoGenerator* self, PyObject* args)
+{
+  int minDbz = 0, length = 0;
+  if (!PyArg_ParseTuple(args, "ii", &minDbz, &length)) {
+    return NULL;
+  }
+  if (!RaveRopoGenerator_emitter(self->generator, minDbz, length)) {
     raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to run emitter");
+  }
+  return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
+}
+
+static PyObject* _pyropogenerator_emitter2(PyRopoGenerator* self, PyObject* args)
+{
+  int minDbz = 0, length = 0, width = 0;
+  if (!PyArg_ParseTuple(args, "iii", &minDbz, &length, &width)) {
+    return NULL;
+  }
+  if (!RaveRopoGenerator_emitter2(self->generator, minDbz, length, width)) {
+    raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to run emitter2");
   }
   return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
 }
@@ -254,7 +279,9 @@ static struct PyMethodDef _pyropogenerator_methods[] =
   {"getImage", (PyCFunction)_pyropogenerator_getImage, 1},
   {"setImage", (PyCFunction)_pyropogenerator_setImage, 1},
   {"speck", (PyCFunction)_pyropogenerator_speck, 1},
+  {"speckNormOld", (PyCFunction)_pyropogenerator_speckNormOld, 1},
   {"emitter", (PyCFunction)_pyropogenerator_emitter, 1},
+  {"emitter2", (PyCFunction)_pyropogenerator_emitter2, 1},
   {"classify", (PyCFunction)_pyropogenerator_classify, 1},
   {"restore", (PyCFunction)_pyropogenerator_restore, 1},
   {NULL, NULL} /* sentinel */

@@ -244,36 +244,19 @@ static PyObject* _pyropogenerator_restore(PyRopoGenerator* self, PyObject* args)
   return result;
 }
 
-static PyObject* _pyropogenerator_getClassification(PyRopoGenerator* self, PyObject* args)
-{
-  RaveFmiImage_t* image = NULL;
-  PyObject* result = NULL;
-
-  if (!PyArg_ParseTuple(args, "")) {
-    return NULL;
-  }
-
-  image = RaveRopoGenerator_getClassification(self->generator);
-  if (image == NULL) {
-    raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to get classification");
-  }
-  result = (PyObject*)PyFmiImage_New(image,0,0);
-  RAVE_OBJECT_RELEASE(image);
-  return (PyObject*)result;
-}
-
 /**
  * All methods a ropo generator can have
  */
 static struct PyMethodDef _pyropogenerator_methods[] =
 {
+  {"classification", NULL},
+  {"markers", NULL},
   {"getImage", (PyCFunction)_pyropogenerator_getImage, 1},
   {"setImage", (PyCFunction)_pyropogenerator_setImage, 1},
   {"speck", (PyCFunction)_pyropogenerator_speck, 1},
   {"emitter", (PyCFunction)_pyropogenerator_emitter, 1},
   {"classify", (PyCFunction)_pyropogenerator_classify, 1},
   {"restore", (PyCFunction)_pyropogenerator_restore, 1},
-  {"getClassification", (PyCFunction)_pyropogenerator_getClassification, 1},
   {NULL, NULL} /* sentinel */
 };
 
@@ -283,6 +266,27 @@ static struct PyMethodDef _pyropogenerator_methods[] =
 static PyObject* _pyropogenerator_getattr(PyRopoGenerator* self, char* name)
 {
   PyObject* res = NULL;
+
+  if (strcmp("classification", name) == 0) {
+	RaveFmiImage_t* image = NULL;
+    image = RaveRopoGenerator_getClassification(self->generator);
+    if (image == NULL) {
+      raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to get classification");
+    }
+    res = (PyObject*)PyFmiImage_New(image,0,0);
+    RAVE_OBJECT_RELEASE(image);
+    return res;
+  } else if (strcmp("markers", name) == 0) {
+	RaveFmiImage_t* image = NULL;
+	image = RaveRopoGenerator_getMarkers(self->generator);
+	if (image == NULL) {
+	  raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to get classification");
+	}
+	res = (PyObject*)PyFmiImage_New(image,0,0);
+	RAVE_OBJECT_RELEASE(image);
+	return res;
+  }
+
   res = Py_FindMethod(_pyropogenerator_methods, (PyObject*) self, name);
   if (res)
     return res;

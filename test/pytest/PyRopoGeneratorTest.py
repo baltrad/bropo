@@ -89,7 +89,7 @@ class PyRopoGeneratorTest(unittest.TestCase):
     b.speck(-20, 5)
     b.emitter(3, 6)
     b.classify()
-    c = b.getClassification()
+    c = b.classification
 
     output = _raveio.new()
     output.object = c.toPolarScan("DBZH")
@@ -100,7 +100,7 @@ class PyRopoGeneratorTest(unittest.TestCase):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
 
-    c = b.speck(-20, 5).emitter(3, 6).classify().getClassification()
+    c = b.speck(-20, 5).emitter(3, 6).classify().classification
 
     output = _raveio.new()
     output.object = c.toPolarScan("DBZH")
@@ -111,7 +111,7 @@ class PyRopoGeneratorTest(unittest.TestCase):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
 
-    classification = b.speck(-20, 5).emitter(3, 6).classify().getClassification().toRaveField()
+    classification = b.speck(-20, 5).emitter(3, 6).classify().classification.toRaveField()
     restored = b.restore(50).toRaveField()
     
     a.addQualityField(classification)

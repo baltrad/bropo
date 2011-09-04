@@ -27,8 +27,8 @@
 # Drain specific c flags
 #
 CFLAGS= $(SHARED_FLAG) $(CCOPTS) $(DEFS) -I../ropo -I. $(PNG_INCLUDE_DIR) $(PYTHON_INCLUDE_FLAG)\
-			$(RAVE_INCLUDE_FLAG) $(RAVE_INCLUDE_FLAG)/python $(HLHDF_INCLUDE_FLAG) $(ZLIB_INCDIR) \
-			$(HDF5_INCDIR) $(PROJ_INCLUDE_FLAG)
+			$(NUMPY_INCLUDE_FLAG) $(RAVE_INCLUDE_FLAG) $(RAVE_INCLUDE_FLAG)/python \
+			$(HLHDF_INCLUDE_FLAG) $(ZLIB_INCDIR) $(HDF5_INCDIR) $(PROJ_INCLUDE_FLAG)
 
 # Linker flags
 #
@@ -44,7 +44,7 @@ LDFLAGS+= $(EXPAT_LIB_DIR)
 EXPAT_LIBRARY=-lexpat
 endif
 
-LIBRARIES=-lhlhdf -lproj  $(EXPAT_LIBRARY) -lravetransform $(MAGICK_LIBRARIES) -lbropo -lpng
+LIBRARIES=-lhlhdf -lproj  $(EXPAT_LIBRARY) -lravetransform -lravepyapi $(MAGICK_LIBRARIES) -lbropo -lpng
 
 # --------------------------------------------------------------------
 # Fixed definitions

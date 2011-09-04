@@ -30,6 +30,16 @@ class FmiImageTest(unittest.TestCase):
     a.gain = 2.5
     self.assertAlmostEqual(2.5, a.gain, 4)
 
+  def testAttributes(self):
+    a = _fmiimage.new()
+    names = a.getAttributeNames()
+    self.assertEquals(0, len(names))
+    a.addAttribute("how/slask", 10)
+    self.assertEquals(10, a.getAttribute("how/slask"))
+    names = a.getAttributeNames()
+    self.assertEquals(1, len(names))
+    self.assertTrue("how/slask" in names)
+
   def testFromRave_scan(self):
     a = _raveio.open(self.PVOL_TESTFILE)
     scan = a.object.getScan(0)

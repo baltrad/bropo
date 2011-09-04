@@ -30,6 +30,8 @@ along with bRopo.  If not, see <http://www.gnu.org/licenses/>.
 #define PYFMIIMAGE_MODULE   /**< to get correct part in pyfmiimage */
 #include "pyfmiimage.h"
 
+#include <rave.h>
+#include <arrayobject.h>
 #include "pypolarscan.h"
 #include "pypolarvolume.h"
 #include "pyravefield.h"
@@ -224,6 +226,172 @@ static PyObject* _pyfmiimage_fromRaveVolume(PyObject* self, PyObject* args)
 }
 
 /**
+ * Adds an attribute to the image. Name of the attribute should be in format
+ * ^(how|what|where)/[A-Za-z0-9_.]$. E.g how/something, what/sthis etc.
+ * Currently, the only supported values are double, long, string.
+ * @param[in] self - this instance
+ * @param[in] args - bin index, ray index.
+ * @returns true or false depending if it works.
+ */
+static PyObject* _pyfmiimage_addAttribute(PyFmiImage* self, PyObject* args)
+{
+  RaveAttribute_t* attr = NULL;
+  char* name = NULL;
+  PyObject* obj = NULL;
+  PyObject* result = NULL;
+
+  if (!PyArg_ParseTuple(args, "sO", &name, &obj)) {
+    return NULL;
+  }
+
+  attr = RAVE_OBJECT_NEW(&RaveAttribute_TYPE);
+  if (attr == NULL) {
+    return NULL;
+  }
+
+  if (!RaveAttribute_setName(attr, name)) {
+    raiseException_gotoTag(done, PyExc_MemoryError, "Failed to set name");
+  }
+
+  if (PyLong_Check(obj) || PyInt_Check(obj)) {
+    long value = PyLong_AsLong(obj);
+    RaveAttribute_setLong(attr, value);
+  } else if (PyFloat_Check(obj)) {
+    double value = PyFloat_AsDouble(obj);
+    RaveAttribute_setDouble(attr, value);
+  } else if (PyString_Check(obj)) {
+    char* value = PyString_AsString(obj);
+    if (!RaveAttribute_setString(attr, value)) {
+      raiseException_gotoTag(done, PyExc_AttributeError, "Failed to set string value");
+    }
+  } else if (PyArray_Check(obj)) {
+    PyArrayObject* arraydata = (PyArrayObject*)obj;
+    if (PyArray_NDIM(arraydata) != 1) {
+      raiseException_gotoTag(done, PyExc_AttributeError, "Only allowed attribute arrays are 1-dimensional");
+    }
+    if (!RaveAttribute_setArrayFromData(attr, PyArray_DATA(arraydata), PyArray_DIM(arraydata, 0), translate_pyarraytype_to_ravetype(PyArray_TYPE(arraydata)))) {
+      raiseException_gotoTag(done, PyExc_AttributeError, "Failed to set array data");
+    }
+  } else {
+    raiseException_gotoTag(done, PyExc_AttributeError, "Unsupported data type");
+  }
+
+  if (!RaveFmiImage_addAttribute(self->image, attr)) {
+    raiseException_gotoTag(done, PyExc_AttributeError, "Failed to add attribute");
+  }
+
+  result = PyBool_FromLong(1);
+done:
+  RAVE_OBJECT_RELEASE(attr);
+  return result;
+}
+
+/**
+ * Returns an attribute with the specified name
+ * @param[in] self - this instance
+ * @param[in] args - name
+ * @returns the attribute value for the name
+ */
+static PyObject* _pyfmiimage_getAttribute(PyFmiImage* self, PyObject* args)
+{
+  RaveAttribute_t* attribute = NULL;
+  char* name = NULL;
+  PyObject* result = NULL;
+  if (!PyArg_ParseTuple(args, "s", &name)) {
+    return NULL;
+  }
+
+  attribute = RaveFmiImage_getAttribute(self->image, name);
+  if (attribute != NULL) {
+    RaveAttribute_Format format = RaveAttribute_getFormat(attribute);
+    if (format == RaveAttribute_Format_Long) {
+      long value = 0;
+      RaveAttribute_getLong(attribute, &value);
+      result = PyLong_FromLong(value);
+    } else if (format == RaveAttribute_Format_Double) {
+      double value = 0.0;
+      RaveAttribute_getDouble(attribute, &value);
+      result = PyFloat_FromDouble(value);
+    } else if (format == RaveAttribute_Format_String) {
+      char* value = NULL;
+      RaveAttribute_getString(attribute, &value);
+      result = PyString_FromString(value);
+    } else if (format == RaveAttribute_Format_LongArray) {
+      long* value = NULL;
+      int len = 0;
+      int i = 0;
+      npy_intp dims[1];
+      RaveAttribute_getLongArray(attribute, &value, &len);
+      dims[0] = len;
+      result = PyArray_SimpleNew(1, dims, PyArray_LONG);
+      for (i = 0; i < len; i++) {
+        *((long*) PyArray_GETPTR1(result, i)) = value[i];
+      }
+    } else if (format == RaveAttribute_Format_DoubleArray) {
+      double* value = NULL;
+      int len = 0;
+      int i = 0;
+      npy_intp dims[1];
+      RaveAttribute_getDoubleArray(attribute, &value, &len);
+      dims[0] = len;
+      result = PyArray_SimpleNew(1, dims, PyArray_DOUBLE);
+      for (i = 0; i < len; i++) {
+        *((double*) PyArray_GETPTR1(result, i)) = value[i];
+      }
+    } else {
+      RAVE_CRITICAL1("Undefined format on requested attribute %s", name);
+      raiseException_gotoTag(done, PyExc_AttributeError, "Undefined attribute");
+    }
+  } else {
+    raiseException_gotoTag(done, PyExc_AttributeError, "No such attribute");
+  }
+done:
+  RAVE_OBJECT_RELEASE(attribute);
+  return result;
+}
+
+/**
+ * Returns a list of attribute names
+ * @param[in] self - this instance
+ * @param[in] args - N/A
+ * @returns a list of attribute names
+ */
+static PyObject* _pyfmiimage_getAttributeNames(PyFmiImage* self, PyObject* args)
+{
+  RaveList_t* list = NULL;
+  PyObject* result = NULL;
+  int n = 0;
+  int i = 0;
+
+  list = RaveFmiImage_getAttributeNames(self->image);
+  if (list == NULL) {
+    raiseException_returnNULL(PyExc_MemoryError, "Could not get attribute names");
+  }
+  n = RaveList_size(list);
+  result = PyList_New(0);
+  for (i = 0; result != NULL && i < n; i++) {
+    char* name = RaveList_get(list, i);
+    if (name != NULL) {
+      PyObject* pynamestr = PyString_FromString(name);
+      if (pynamestr == NULL) {
+        goto fail;
+      }
+      if (PyList_Append(result, pynamestr) != 0) {
+        Py_DECREF(pynamestr);
+        goto fail;
+      }
+      Py_DECREF(pynamestr);
+    }
+  }
+  RaveList_freeAndDestroy(&list);
+  return result;
+fail:
+  RaveList_freeAndDestroy(&list);
+  Py_XDECREF(result);
+  return NULL;
+}
+
+/**
  * Returns the rave polar scan
  * @param[in] self - self
  * @param[in] args - a string specifying quantity. Default is DBZH.
@@ -277,14 +445,11 @@ static struct PyMethodDef _pyfmiimage_methods[] =
 {
   {"offset", NULL},
   {"gain", NULL},
+  {"addAttribute", (PyCFunction)_pyfmiimage_addAttribute, 1},
+  {"getAttribute", (PyCFunction)_pyfmiimage_getAttribute, 1},
+  {"getAttributeNames", (PyCFunction)_pyfmiimage_getAttributeNames, 1},
   {"toPolarScan", (PyCFunction)_pyfmiimage_toPolarScan, 1},
   {"toRaveField", (PyCFunction)_pyfmiimage_toRaveField, 1},
-  /*{"longitude", NULL},
-  {"getDistance", (PyCFunction) _pypolarvolume_getDistance, 1},*/
-    /*
-  {"fromRave", (PyCFunction)_pyfmiimage_fromRave, 1},
-  {"toRave", (PyCFunction)_pyfmiimage_toRave, 1},
-  */
   {NULL, NULL} /* sentinel */
 };
 
@@ -415,6 +580,7 @@ void init_fmiimage(void)
     Py_FatalError("Can't define _fmiimage.error");
   }
 
+  import_array();
   import_pypolarscan();
   import_pypolarvolume();
   import_pyravefield();

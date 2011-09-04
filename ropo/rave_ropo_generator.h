@@ -108,6 +108,15 @@ int RaveRopoGenerator_emitter2(RaveRopoGenerator_t* self, int minDbz, int length
 int RaveRopoGenerator_classify(RaveRopoGenerator_t* self);
 
 /**
+ * Clears all classfication information by removing all probabilities,
+ * master classification and marker fields.
+ * This is basically the same as running \ref RaveRopoGenerator_setImage with
+ * the image returned from RaveRopoGenerator_getImage.
+ * @param[in] self - self
+ */
+void RaveRopoGenerator_declassify(RaveRopoGenerator_t* self);
+
+/**
  * Creates a restored image according to the classification table.
  * @param[in] self - self
  * @param[in] threshold - the probability threshold
@@ -124,6 +133,21 @@ RaveFmiImage_t* RaveRopoGenerator_restore(RaveRopoGenerator_t* self, int thresho
  * @return 1 on success otherwise 0
  */
 int RaveRopoGenerator_restoreSelf(RaveRopoGenerator_t* self, int threshold);
+
+/**
+ * Returns the number of run detectors.
+ * @param[in] self - self
+ * @return the number of run detectors
+ */
+int RaveRopoGenerator_getProbabilityFieldCount(RaveRopoGenerator_t* self);
+
+/**
+ * Returns the probability field at the specified index.
+ * @param[in] self - self
+ * @param[in] index - the index of the field
+ * @return the probability field on success otherwise NULL
+ */
+RaveFmiImage_t* RaveRopoGenerator_getProbabilityField(RaveRopoGenerator_t* self, int index);
 
 /**
  * Returns the a classification probability field.

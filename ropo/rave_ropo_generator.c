@@ -349,7 +349,7 @@ void RaveRopoGenerator_setImage(RaveRopoGenerator_t* self, RaveFmiImage_t* image
   RAVE_ASSERT((self != NULL), "self == NULL");
   RAVE_ASSERT((image != NULL), "image == NULL");
 
-  RaveObjectList_clear(self->probabilities);
+  RaveRopoGenerator_declassify(self);
   RAVE_OBJECT_RELEASE(self->image);
   self->image = RAVE_OBJECT_COPY(image);
 }
@@ -603,6 +603,14 @@ done:
   return result;
 }
 
+void RaveRopoGenerator_declassify(RaveRopoGenerator_t* self)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  RAVE_OBJECT_RELEASE(self->classification);
+  RAVE_OBJECT_RELEASE(self->markers);
+  RaveObjectList_clear(self->probabilities);
+}
+
 RaveFmiImage_t* RaveRopoGenerator_restore(RaveRopoGenerator_t* self, int threshold)
 {
   RaveFmiImage_t* restored = NULL;
@@ -659,6 +667,23 @@ int RaveRopoGenerator_restoreSelf(RaveRopoGenerator_t* self, int threshold)
 done:
   RAVE_OBJECT_RELEASE(restored);
   return result;
+}
+
+int RaveRopoGenerator_getProbabilityFieldCount(RaveRopoGenerator_t* self)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  return RaveObjectList_size(self->probabilities);
+}
+
+RaveFmiImage_t* RaveRopoGenerator_getProbabilityField(RaveRopoGenerator_t* self, int index)
+{
+  RaveCoreObject* object = NULL;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  object = RaveObjectList_get(self->probabilities, index);
+
+  return (RaveFmiImage_t*)object;
 }
 
 RaveFmiImage_t* RaveRopoGenerator_getClassification(RaveRopoGenerator_t* self)

@@ -252,6 +252,15 @@ static PyObject* _pyropogenerator_classify(PyRopoGenerator* self, PyObject* args
   return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
 }
 
+static PyObject* _pyropogenerator_declassify(PyRopoGenerator* self, PyObject* args)
+{
+  if (!PyArg_ParseTuple(args, "")) {
+    return NULL;
+  }
+  RaveRopoGenerator_declassify(self->generator);
+  return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
+}
+
 static PyObject* _pyropogenerator_restore(PyRopoGenerator* self, PyObject* args)
 {
   RaveFmiImage_t* image = NULL;
@@ -281,6 +290,32 @@ static PyObject* _pyropogenerator_restoreSelf(PyRopoGenerator* self, PyObject* a
   return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
 }
 
+static PyObject* _pyropogenerator_getProbabilityFieldCount(PyRopoGenerator* self, PyObject* args)
+{
+  if (!PyArg_ParseTuple(args, "")) {
+    return NULL;
+  }
+  return PyLong_FromLong((int)RaveRopoGenerator_getProbabilityFieldCount(self->generator));
+}
+
+static PyObject* _pyropogenerator_getProbabilityField(PyRopoGenerator* self, PyObject* args)
+{
+  RaveFmiImage_t* image = NULL;
+  PyObject* result = NULL;
+
+  int index = 0;
+  if (!PyArg_ParseTuple(args, "i", &index)) {
+    return NULL;
+  }
+  image = RaveRopoGenerator_getProbabilityField(self->generator, index);
+  if (image == NULL) {
+    raiseException_returnNULL(PyExc_IndexError, "Failed to return probability field at specified index");
+  }
+  result = (PyObject*)PyFmiImage_New(image, 0, 0);
+  RAVE_OBJECT_RELEASE(image);
+  return result;
+}
+
 /**
  * All methods a ropo generator can have
  */
@@ -295,8 +330,11 @@ static struct PyMethodDef _pyropogenerator_methods[] =
   {"emitter", (PyCFunction)_pyropogenerator_emitter, 1},
   {"emitter2", (PyCFunction)_pyropogenerator_emitter2, 1},
   {"classify", (PyCFunction)_pyropogenerator_classify, 1},
+  {"declassify", (PyCFunction)_pyropogenerator_declassify, 1},
   {"restore", (PyCFunction)_pyropogenerator_restore, 1},
   {"restoreSelf", (PyCFunction)_pyropogenerator_restoreSelf, 1},
+  {"getProbabilityFieldCount", (PyCFunction)_pyropogenerator_getProbabilityFieldCount, 1},
+  {"getProbabilityField", (PyCFunction)_pyropogenerator_getProbabilityField, 1},
   {NULL, NULL} /* sentinel */
 };
 

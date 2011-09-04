@@ -18,6 +18,7 @@ class PyRopoGeneratorTest(unittest.TestCase):
   
   TEMPORARY_FILE="ropotest_file1.h5"
   TEMPORARY_FILE2="ropotest_file2.h5"
+  TEMPORARY_FILE3="ropotest_file3.h5"
   
   def setUp(self):
     if os.path.isfile(self.TEMPORARY_FILE):
@@ -141,9 +142,17 @@ class PyRopoGeneratorTest(unittest.TestCase):
     
     output = _raveio.new()
     output.object = a
-    output.filename = self.TEMPORARY_FILE2
-    output.save()
-      
+    output.filename = self.TEMPORARY_FILE3
+
+    self.exportFile(output);
+
+  # Simple way to ensure that a file is exported properly
+  #
+  def exportFile(self, object):
+    if os.path.isfile(object.filename):
+      os.unlink(object.filename)
+    object.save()
+    
 if __name__ == "__main__":
   #import sys;sys.argv = ['', 'Test.testName']
   unittest.main()

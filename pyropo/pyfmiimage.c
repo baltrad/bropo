@@ -275,6 +275,8 @@ static PyObject* _pyfmiimage_toRaveField(PyFmiImage* self, PyObject* args)
  */
 static struct PyMethodDef _pyfmiimage_methods[] =
 {
+  {"offset", NULL},
+  {"gain", NULL},
   {"toPolarScan", (PyCFunction)_pyfmiimage_toPolarScan, 1},
   {"toRaveField", (PyCFunction)_pyfmiimage_toRaveField, 1},
   /*{"longitude", NULL},
@@ -292,6 +294,12 @@ static struct PyMethodDef _pyfmiimage_methods[] =
 static PyObject* _pyfmiimage_getattr(PyFmiImage* self, char* name)
 {
   PyObject* res = NULL;
+  if (strcmp("offset", name) == 0) {
+    return PyFloat_FromDouble(RaveFmiImage_getOffset(self->image));
+  } else if (strcmp("gain", name) == 0) {
+    return PyFloat_FromDouble(RaveFmiImage_getGain(self->image));
+  }
+
   res = Py_FindMethod(_pyfmiimage_methods, (PyObject*) self, name);
   if (res)
     return res;
@@ -311,7 +319,29 @@ static int _pyfmiimage_setattr(PyFmiImage* self, char* name, PyObject* val)
     goto done;
   }
 
-  raiseException_gotoTag(done, PyExc_AttributeError, name);
+  if (strcmp("offset", name) == 0) {
+    double v = 0.0;
+    if (PyFloat_Check(val)) {
+      v = PyFloat_AsDouble(val);
+    } else if (PyLong_Check(val)) {
+      v = PyLong_AsDouble(val);
+    } else {
+      raiseException_gotoTag(done, PyExc_TypeError, "offset is a number");
+    }
+    RaveFmiImage_setOffset(self->image, v);
+  } else if (strcmp("gain", name) == 0) {
+    double v = 0.0;
+    if (PyFloat_Check(val)) {
+      v = PyFloat_AsDouble(val);
+    } else if (PyLong_Check(val)) {
+      v = PyLong_AsDouble(val);
+    } else {
+      raiseException_gotoTag(done, PyExc_TypeError, "offset is a number");
+    }
+    RaveFmiImage_setGain(self->image, v);
+  } else {
+    raiseException_gotoTag(done, PyExc_AttributeError, name);
+  }
 
   result = 0;
 done:

@@ -306,6 +306,41 @@ done:
   return result;
 }
 
+/**
+ * Creates a valid 8 bit value in range 0-255 from the wanted value translated
+ * with the offset and gain.
+ * E.g. If data representation is from -20dBZ and up with 0.5 dBZ intervals you
+ * probably have a offset -20 and gain 0.5. Which means that
+ * 1 in the data is -19.5dBZ.
+ * However, this function inverts these value. value should be actual value, e.g. -20
+ * and then it is converted with the offset and gain by v = (value - offset)/gain.
+ *
+ * @param[in] value - the requested actual value, e.g. -20 (dBZ)
+ * @param[in] image - image (from where offset and gain are fetched)
+ * @return the converted value (0-255) on success and negative value on failure
+ */
+static int RaveRopoGeneratorInternal_valueToByteRange(int value, RaveFmiImage_t* image)
+{
+  int result = -1;
+  double offset = 0.0;
+  double gain = 0.0;
+
+  RAVE_ASSERT((image != NULL), "image == NULL");
+
+  offset = RaveFmiImage_getOffset(image);
+  gain = RaveFmiImage_getGain(image);
+
+  if (gain != 0.0) {
+    result = (int)((value - offset)/gain);
+  }
+  if (result <= 0) {
+    result = 0;
+  } else if (result >= 255) {
+    result = 255;
+  }
+  return result;
+}
+
 /*@} End of Private functions */
 
 /*@{ Interface functions */
@@ -352,7 +387,7 @@ int RaveRopoGenerator_speck(RaveRopoGenerator_t* self, int minDbz, int maxA)
 
   detect_specks(RaveFmiImage_getImage(self->image),
                 RaveFmiImage_getImage(probability),
-                abs_dbz_to_byte(minDbz),
+                RaveRopoGeneratorInternal_valueToByteRange(minDbz, self->image),
                 histogram_area);
   semisigmoid_image(RaveFmiImage_getImage(probability), maxA);
   invert_image(RaveFmiImage_getImage(probability));
@@ -396,7 +431,7 @@ int RaveRopoGenerator_speckNormOld(RaveRopoGenerator_t* self, int minDbz, int ma
 
   detect_specks(RaveFmiImage_getImage(self->image),
 		  	    RaveFmiImage_getImage(probability),
-		  	    abs_dbz_to_byte(minDbz),
+		  	    RaveRopoGeneratorInternal_valueToByteRange(minDbz, self->image),
 		  	    histogram_area);
   distance_compensation_mul(RaveFmiImage_getImage(probability), maxN);
   semisigmoid_image(RaveFmiImage_getImage(probability),maxA);
@@ -441,7 +476,7 @@ int RaveRopoGenerator_emitter(RaveRopoGenerator_t* self, int minDbz, int length)
 
   detect_emitters(RaveFmiImage_getImage(self->image),
                   RaveFmiImage_getImage(probability),
-                  abs_dbz_to_byte(minDbz), length);
+                  RaveRopoGeneratorInternal_valueToByteRange(minDbz, self->image), length);
 
   if (!RaveObjectList_add(self->probabilities, (RaveCoreObject*)probability)) {
     RAVE_ERROR0("Failed to add probability field to probabilities");
@@ -481,7 +516,7 @@ int RaveRopoGenerator_emitter2(RaveRopoGenerator_t* self, int minDbz, int length
 
   detect_emitters2(RaveFmiImage_getImage(self->image),
                    RaveFmiImage_getImage(probability),
-                   abs_dbz_to_byte(minDbz),
+                   RaveRopoGeneratorInternal_valueToByteRange(minDbz, self->image),
                    length,
                    width);
 

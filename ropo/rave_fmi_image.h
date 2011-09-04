@@ -105,6 +105,38 @@ RaveAttribute_t* RaveFmiImage_getAttribute(RaveFmiImage_t* self, const char* nam
 RaveList_t* RaveFmiImage_getAttributeNames(RaveFmiImage_t* self);
 
 /**
+ * Sets the gain for the data in the image.
+ * Data stored to actual value is retrieved by offset + value * gain.
+ * @param[in] self - self
+ * @param[in] gain - the gain
+ */
+void RaveFmiImage_setGain(RaveFmiImage_t* self, double gain);
+
+/**
+ * Returns the gain for the data in the image
+ * Data stored to actual value is retrieved by offset + value * gain.
+ * @param[in] self - self
+ * @return the gain
+ */
+double RaveFmiImage_getGain(RaveFmiImage_t* self);
+
+/**
+ * Sets the gain for the data in the image
+ * Data stored to actual value is retrieved by offset + value * gain.
+ * @param[in] self - self
+ * @param[in] offset - the offset
+ */
+void RaveFmiImage_setOffset(RaveFmiImage_t* self, double offset);
+
+/**
+ * Returns the offset for the data in the image.
+ * Data stored to actual value is retrieved by offset + value * gain.
+ * @param[in] self - self
+ * @return the offset
+ */
+double RaveFmiImage_getOffset(RaveFmiImage_t* self);
+
+/**
  * Creates a rave fmi image with specified dimension
  * @param[in] width - the width
  * @param[in] height - the height

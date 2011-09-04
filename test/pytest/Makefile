@@ -30,3 +30,4 @@ clean:
 .PHONY:distclean
 distclean: clean
 	@\rm -f *.pyc
+	@\rm -f ropotest_file1.h5 ropotest_file2.h5 ropotest_file3.h5

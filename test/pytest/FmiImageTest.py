@@ -18,10 +18,25 @@ class FmiImageTest(unittest.TestCase):
   def tearDown(self):
     pass
 
+  def test_offset(self):
+    a = _fmiimage.new()
+    self.assertAlmostEqual(0.0, a.offset, 4)
+    a.offset = 2.5
+    self.assertAlmostEqual(2.5, a.offset, 4)
+
+  def test_gain(self):
+    a = _fmiimage.new()
+    self.assertAlmostEqual(1.0, a.gain, 4)
+    a.gain = 2.5
+    self.assertAlmostEqual(2.5, a.gain, 4)
+
   def testFromRave_scan(self):
     a = _raveio.open(self.PVOL_TESTFILE)
-    b = _fmiimage.fromRave(a.object.getScan(0))
+    scan = a.object.getScan(0)
+    b = _fmiimage.fromRave(scan)
     self.assertNotEqual(-1, string.find(`type(b)`, "FmiImageCore"))
+    self.assertAlmostEqual(scan.getParameter("DBZH").offset, b.offset, 4)
+    self.assertAlmostEqual(scan.getParameter("DBZH").gain, b.gain, 4)
 
   def testFromRave_withQuantity_scan(self):
     a = _raveio.open(self.PVOL_TESTFILE)

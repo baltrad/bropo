@@ -37,6 +37,8 @@ struct _RaveFmiImage_t {
   RAVE_OBJECT_HEAD /** Always on top */
   FmiImage* image; /**< the fmi image */
   RaveObjectHashTable_t* attrs; /**< attributes */
+  double offset; /**< the offset the data has been stored with */
+  double gain; /**< the offset the data has been stored with */
 };
 
 /*@{ Private functions */
@@ -65,6 +67,8 @@ static void RaveFmiImageInternal_resetImage(RaveFmiImage_t* img)
 static int RaveFmiImage_constructor(RaveCoreObject* obj)
 {
   RaveFmiImage_t* this = (RaveFmiImage_t*)obj;
+  this->offset = 0.0;
+  this->gain = 1.0;
   this->image = new_image(1);
   this->attrs = RAVE_OBJECT_NEW(&RaveObjectHashTable_TYPE);
   if (this->image == NULL || this->attrs == NULL) {
@@ -98,6 +102,8 @@ static int RaveFmiImage_copyconstructor(RaveCoreObject* obj, RaveCoreObject* src
 {
   RaveFmiImage_t* this = (RaveFmiImage_t*)obj;
   RaveFmiImage_t* src = (RaveFmiImage_t*)srcobj;
+  this->offset = src->offset;
+  this->gain = src->gain;
   this->image = new_image(1);
   this->attrs = RAVE_OBJECT_CLONE(src->attrs);
   if (this->image == NULL || this->attrs == NULL) {
@@ -118,14 +124,17 @@ error:
  * @param[in] image - the image to be filled
  * @return 1 on success otherwise 0
  */
-static int RaveFmiImageInternal_scanToFmiImage(PolarScan_t* scan, const char* quantity, FmiImage* image)
+static int RaveFmiImageInternal_scanToFmiImage(PolarScan_t* scan, const char* quantity, RaveFmiImage_t* raveimg)
 {
   int i = 0, j = 0;
   int result = 0;
   PolarScanParam_t* param = NULL;
+  FmiImage* image = NULL;
 
   RAVE_ASSERT((scan != NULL), "scan == NULL");
-  RAVE_ASSERT((image != NULL), "image == NULL");
+  RAVE_ASSERT((raveimg != NULL), "image == NULL");
+
+  image = RaveFmiImage_getImage(raveimg);
 
   image->width=PolarScan_getNbins(scan);
   image->height=PolarScan_getNrays(scan);
@@ -151,6 +160,10 @@ static int RaveFmiImageInternal_scanToFmiImage(PolarScan_t* scan, const char* qu
     RAVE_WARNING0("FmiImages can only support 8-bit data");
     goto done;
   }
+
+  RaveFmiImage_setGain(raveimg, PolarScanParam_getGain(param));
+  RaveFmiImage_setOffset(raveimg, PolarScanParam_getOffset(param));
+
 
   for (j = 0; j < image->height; j++) {
     for (i = 0; i < image->width; i++) {
@@ -210,7 +223,7 @@ done:
  * @param[in] quantity - the quantity of the parameter. If null, default is DBZH.
  * @return the polar scan on success otherwise NULL
  */
-static PolarScan_t* RaveFmiImageInternal_fmiImageToScan(FmiImage* image, const char* quantity)
+static PolarScan_t* RaveFmiImageInternal_fmiImageToScan(FmiImage* image, double offset, double gain, const char* quantity)
 {
   PolarScan_t* scan = NULL;
   PolarScan_t* result = NULL;
@@ -225,8 +238,8 @@ static PolarScan_t* RaveFmiImageInternal_fmiImageToScan(FmiImage* image, const c
     goto done;
   }
 
-  PolarScanParam_setGain(param, 1.0);
-  PolarScanParam_setOffset(param, 0.0);
+  PolarScanParam_setGain(param, gain);
+  PolarScanParam_setOffset(param, offset);
   PolarScanParam_setNodata(param, 255.0);
   PolarScanParam_setUndetect(param, 0.0);
   if (quantity != NULL) {
@@ -343,7 +356,7 @@ PolarScan_t* RaveFmiImage_toPolarScan(RaveFmiImage_t* self, const char* quantity
 
   RAVE_ASSERT((self != NULL), "self == NULL");
 
-  scan = RaveFmiImageInternal_fmiImageToScan(&self->image[i], quantity);
+  scan = RaveFmiImageInternal_fmiImageToScan(&self->image[0], self->offset, self->gain, quantity);
   if (scan == NULL) {
     RAVE_CRITICAL0("Failed to convert image to scan");
     goto done;
@@ -379,7 +392,7 @@ RaveField_t* RaveFmiImage_toRaveField(RaveFmiImage_t* self)
 
   RAVE_ASSERT((self != NULL), "self == NULL");
 
-  field = RaveFmiImageInternal_fmiImageToField(&self->image[i]);
+  field = RaveFmiImageInternal_fmiImageToField(&self->image[0]);
   if (field == NULL) {
     RAVE_CRITICAL0("Failed to convert image to field");
     goto done;
@@ -449,6 +462,30 @@ RaveList_t* RaveFmiImage_getAttributeNames(RaveFmiImage_t* self)
   return RaveObjectHashTable_keys(self->attrs);
 }
 
+void RaveFmiImage_setGain(RaveFmiImage_t* self, double gain)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  self->gain = gain;
+}
+
+double RaveFmiImage_getGain(RaveFmiImage_t* self)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  return self->gain;
+}
+
+void RaveFmiImage_setOffset(RaveFmiImage_t* self, double offset)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  self->offset = offset;
+}
+
+double RaveFmiImage_getOffset(RaveFmiImage_t* self)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  return self->offset;
+}
+
 RaveFmiImage_t* RaveFmiImage_new(int width, int height)
 {
   RaveFmiImage_t* result = RAVE_OBJECT_NEW(&RaveFmiImage_TYPE);
@@ -488,7 +525,7 @@ RaveFmiImage_t* RaveFmiImage_fromPolarVolume(PolarVolume_t* volume, int scannr, 
     goto done;
   }
   if (quantity == NULL || PolarScan_hasParameter(scan, quantity)) {
-    if (!RaveFmiImageInternal_scanToFmiImage(scan, quantity, &image->image[0])) {
+    if (!RaveFmiImageInternal_scanToFmiImage(scan, quantity, image)) {
       RAVE_ERROR0("Failed to convert scan to fmi image");
       goto done;
     }
@@ -515,7 +552,7 @@ RaveFmiImage_t* RaveFmiImage_fromPolarScan(PolarScan_t* scan, const char* quanti
   }
 
   if (quantity == NULL || PolarScan_hasParameter(scan, quantity)) {
-    if (!RaveFmiImageInternal_scanToFmiImage(scan, quantity, &image->image[0])) {
+    if (!RaveFmiImageInternal_scanToFmiImage(scan, quantity, image)) {
       RAVE_ERROR0("Failed to convert scan to fmi image");
       goto done;
     }

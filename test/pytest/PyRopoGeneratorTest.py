@@ -142,9 +142,18 @@ class PyRopoGeneratorTest(unittest.TestCase):
     
     output = _raveio.new()
     output.object = a
-    output.filename = self.TEMPORARY_FILE3
+    output.filename = self.TEMPORARY_FILE
 
     self.exportFile(output);
+
+  def testRestoreSelf(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    oldimg = b.getImage()
+    b.speck(-20, 5).restoreSelf(50)
+    result = b.getImage()
+    self.assertTrue(result != oldimg)
+    #self.assertTrue(string.find(result."SPECK:"))
 
   # Simple way to ensure that a file is exported properly
   #

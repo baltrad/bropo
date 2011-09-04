@@ -269,6 +269,18 @@ static PyObject* _pyropogenerator_restore(PyRopoGenerator* self, PyObject* args)
   return result;
 }
 
+static PyObject* _pyropogenerator_restoreSelf(PyRopoGenerator* self, PyObject* args)
+{
+  int threshold = 0;
+  if (!PyArg_ParseTuple(args, "i", &threshold)) {
+    return NULL;
+  }
+  if (!RaveRopoGenerator_restoreSelf(self->generator, threshold)) {
+    raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to restore self");
+  }
+  return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
+}
+
 /**
  * All methods a ropo generator can have
  */
@@ -284,6 +296,7 @@ static struct PyMethodDef _pyropogenerator_methods[] =
   {"emitter2", (PyCFunction)_pyropogenerator_emitter2, 1},
   {"classify", (PyCFunction)_pyropogenerator_classify, 1},
   {"restore", (PyCFunction)_pyropogenerator_restore, 1},
+  {"restoreSelf", (PyCFunction)_pyropogenerator_restoreSelf, 1},
   {NULL, NULL} /* sentinel */
 };
 

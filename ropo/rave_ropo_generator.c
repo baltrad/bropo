@@ -531,7 +531,7 @@ done:
   return result;
 }
 
-//specknorm_old, clutter, clutter2, ground, ground2, softcut, biomet, ship, xemitter0, sun, sun2, doppler,
+//clutter, clutter2, ground, ground2, softcut, biomet, ship, xemitter0, sun, sun2, doppler,
 
 int RaveRopoGenerator_classify(RaveRopoGenerator_t* self)
 {
@@ -633,6 +633,29 @@ RaveFmiImage_t* RaveRopoGenerator_restore(RaveRopoGenerator_t* self, int thresho
                 threshold);
 
   result = RAVE_OBJECT_COPY(restored);
+done:
+  RAVE_OBJECT_RELEASE(restored);
+  return result;
+}
+
+int RaveRopoGenerator_restoreSelf(RaveRopoGenerator_t* self, int threshold)
+{
+  RaveFmiImage_t* restored = NULL;
+  int result = 0;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  restored = RaveRopoGenerator_restore(self, threshold);
+
+  if (restored == NULL) {
+    RAVE_ERROR0("Failed to restore self");
+    goto done;
+  }
+
+  RAVE_OBJECT_RELEASE(self->image);
+  self->image = RAVE_OBJECT_COPY(restored);
+
+  result = 1;
 done:
   RAVE_OBJECT_RELEASE(restored);
   return result;

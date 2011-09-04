@@ -413,7 +413,7 @@ int RaveRopoGenerator_speckNormOld(RaveRopoGenerator_t* self, int minDbz, int ma
   RAVE_ASSERT((self != NULL), "self == NULL");
 
   if (self->image == NULL) {
-    RAVE_ERROR0("Calling speck when there is no image to operate on?");
+    RAVE_ERROR0("Calling speckNormOld when there is no image to operate on?");
     goto done;
   }
 
@@ -458,7 +458,7 @@ int RaveRopoGenerator_emitter(RaveRopoGenerator_t* self, int minDbz, int length)
   RAVE_ASSERT((self != NULL), "self == NULL");
 
   if (self->image == NULL) {
-    RAVE_ERROR0("Calling speck when there is no image to operate on?");
+    RAVE_ERROR0("Calling emitter when there is no image to operate on?");
     goto done;
   }
 
@@ -498,7 +498,7 @@ int RaveRopoGenerator_emitter2(RaveRopoGenerator_t* self, int minDbz, int length
   RAVE_ASSERT((self != NULL), "self == NULL");
 
   if (self->image == NULL) {
-    RAVE_ERROR0("Calling speck when there is no image to operate on?");
+    RAVE_ERROR0("Calling emitter2 when there is no image to operate on?");
     goto done;
   }
 
@@ -531,7 +531,304 @@ done:
   return result;
 }
 
-//clutter, clutter2, ground, ground2, softcut, biomet, ship, xemitter0, sun, sun2, doppler,
+int RaveRopoGenerator_clutter(RaveRopoGenerator_t* self, int minDbz, int maxCompactness)
+{
+  RaveFmiImage_t* probability = NULL;
+
+  int result = 0;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  if (self->image == NULL) {
+    RAVE_ERROR0("Calling clutter when there is no image to operate on?");
+    goto done;
+  }
+
+  probability = RAVE_OBJECT_CLONE(self->image);
+  if (probability == NULL) {
+    RAVE_CRITICAL0("Failed to clone image");
+    goto done;
+  }
+
+  if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
+      !RaveRopoGeneratorInternal_addTaskArgs(probability, "CLUTTER: %d,%d",minDbz, maxCompactness)) {
+    RAVE_CRITICAL0("Failed to add task arguments");
+    goto done;
+  }
+
+  detect_specks(RaveFmiImage_getImage(self->image),
+                RaveFmiImage_getImage(probability),
+                RaveRopoGeneratorInternal_valueToByteRange(minDbz, self->image),
+                histogram_compactness);
+  semisigmoid_image(RaveFmiImage_getImage(probability),maxCompactness);
+  invert_image(RaveFmiImage_getImage(probability));
+  translate_intensity(RaveFmiImage_getImage(probability),255,0);
+
+  if (!RaveObjectList_add(self->probabilities, (RaveCoreObject*)probability)) {
+    RAVE_ERROR0("Failed to add probability field to probabilities");
+    goto done;
+  }
+
+  result = 1;
+done:
+  RAVE_OBJECT_RELEASE(probability);
+  return result;
+}
+
+int RaveRopoGenerator_clutter2(RaveRopoGenerator_t* self, int minDbz, int maxSmoothness)
+{
+  RaveFmiImage_t* probability = NULL;
+
+  int result = 0;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  if (self->image == NULL) {
+    RAVE_ERROR0("Calling clutter2 when there is no image to operate on?");
+    goto done;
+  }
+
+  probability = RAVE_OBJECT_CLONE(self->image);
+  if (probability == NULL) {
+    RAVE_CRITICAL0("Failed to clone image");
+    goto done;
+  }
+
+  if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
+      !RaveRopoGeneratorInternal_addTaskArgs(probability, "CLUTTER2: %d,%d",minDbz, maxSmoothness)) {
+    RAVE_CRITICAL0("Failed to add task arguments");
+    goto done;
+  }
+
+  detect_specks(RaveFmiImage_getImage(self->image),
+                RaveFmiImage_getImage(probability),
+                RaveRopoGeneratorInternal_valueToByteRange(minDbz, self->image),
+                histogram_smoothness);
+  invert_image(RaveFmiImage_getImage(probability));
+  translate_intensity(RaveFmiImage_getImage(probability),255,0);
+  semisigmoid_image(RaveFmiImage_getImage(probability),255-maxSmoothness);
+
+  if (!RaveObjectList_add(self->probabilities, (RaveCoreObject*)probability)) {
+    RAVE_ERROR0("Failed to add probability field to probabilities");
+    goto done;
+  }
+
+  result = 1;
+done:
+  RAVE_OBJECT_RELEASE(probability);
+  return result;
+}
+
+int RaveRopoGenerator_softcut(RaveRopoGenerator_t* self, int maxDbz, int r, int r2)
+{
+  RaveFmiImage_t* probability = NULL;
+
+  int result = 0;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  if (self->image == NULL) {
+    RAVE_ERROR0("Calling softcut when there is no image to operate on?");
+    goto done;
+  }
+
+  probability = RAVE_OBJECT_CLONE(self->image);
+  if (probability == NULL) {
+    RAVE_CRITICAL0("Failed to clone image");
+    goto done;
+  }
+
+  if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
+      !RaveRopoGeneratorInternal_addTaskArgs(probability, "SOFTCUT: %d,%d,%d",maxDbz, r, r2)) {
+    RAVE_CRITICAL0("Failed to add task arguments");
+    goto done;
+  }
+
+  detect_insect_band(RaveFmiImage_getImage(self->image),
+                     RaveFmiImage_getImage(probability),
+                     RaveRopoGeneratorInternal_valueToByteRange(maxDbz, self->image),
+                     r, r2);
+
+  if (!RaveObjectList_add(self->probabilities, (RaveCoreObject*)probability)) {
+    RAVE_ERROR0("Failed to add probability field to probabilities");
+    goto done;
+  }
+
+  result = 1;
+done:
+  RAVE_OBJECT_RELEASE(probability);
+  return result;
+}
+
+int RaveRopoGenerator_biomet(RaveRopoGenerator_t* self, int maxDbz, int dbzDelta, int maxAlt, int altDelta)
+{
+  RaveFmiImage_t* probability = NULL;
+
+  int result = 0;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  if (self->image == NULL) {
+    RAVE_ERROR0("Calling biomet when there is no image to operate on?");
+    goto done;
+  }
+
+  probability = RAVE_OBJECT_CLONE(self->image);
+  if (probability == NULL) {
+    RAVE_CRITICAL0("Failed to clone image");
+    goto done;
+  }
+
+  if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
+      !RaveRopoGeneratorInternal_addTaskArgs(probability, "BIOMET: %d,%d,%d,%d",maxDbz, dbzDelta, maxAlt, altDelta)) {
+    RAVE_CRITICAL0("Failed to add task arguments");
+    goto done;
+  }
+
+  detect_biomet(RaveFmiImage_getImage(self->image),
+                RaveFmiImage_getImage(probability),
+                RaveRopoGeneratorInternal_valueToByteRange(maxDbz, self->image),
+                rel_dbz_to_byte(dbzDelta),
+                maxAlt,
+                altDelta);
+
+  if (!RaveObjectList_add(self->probabilities, (RaveCoreObject*)probability)) {
+    RAVE_ERROR0("Failed to add probability field to probabilities");
+    goto done;
+  }
+
+  result = 1;
+done:
+  RAVE_OBJECT_RELEASE(probability);
+  return result;
+}
+
+int RaveRopoGenerator_ship(RaveRopoGenerator_t* self, int minRelDbz, int minA)
+{
+  RaveFmiImage_t* probability = NULL;
+
+  int result = 0;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  if (self->image == NULL) {
+    RAVE_ERROR0("Calling ship when there is no image to operate on?");
+    goto done;
+  }
+
+  probability = RAVE_OBJECT_CLONE(self->image);
+  if (probability == NULL) {
+    RAVE_CRITICAL0("Failed to clone image");
+    goto done;
+  }
+
+  if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
+      !RaveRopoGeneratorInternal_addTaskArgs(probability, "SHIP: %d,%d",minRelDbz, minA)) {
+    RAVE_CRITICAL0("Failed to add task arguments");
+    goto done;
+  }
+
+  detect_ships(RaveFmiImage_getImage(self->image),
+               RaveFmiImage_getImage(probability),
+               rel_dbz_to_byte(minRelDbz),
+               minA);
+
+  if (!RaveObjectList_add(self->probabilities, (RaveCoreObject*)probability)) {
+    RAVE_ERROR0("Failed to add probability field to probabilities");
+    goto done;
+  }
+
+  result = 1;
+done:
+  RAVE_OBJECT_RELEASE(probability);
+  return result;
+}
+
+int RaveRopoGenerator_sun(RaveRopoGenerator_t* self, int minDbz, int minLength, int maxThickness)
+{
+  RaveFmiImage_t* probability = NULL;
+
+  int result = 0;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  if (self->image == NULL) {
+    RAVE_ERROR0("Calling sun when there is no image to operate on?");
+    goto done;
+  }
+
+  probability = RAVE_OBJECT_CLONE(self->image);
+  if (probability == NULL) {
+    RAVE_CRITICAL0("Failed to clone image");
+    goto done;
+  }
+
+  if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
+      !RaveRopoGeneratorInternal_addTaskArgs(probability, "SUN: %d,%d,%d", minDbz, minLength, maxThickness)) {
+    RAVE_CRITICAL0("Failed to add task arguments");
+    goto done;
+  }
+
+  detect_sun(RaveFmiImage_getImage(self->image),
+             RaveFmiImage_getImage(probability),
+             RaveRopoGeneratorInternal_valueToByteRange(minDbz, self->image),
+             maxThickness,
+             minLength);
+
+  if (!RaveObjectList_add(self->probabilities, (RaveCoreObject*)probability)) {
+    RAVE_ERROR0("Failed to add probability field to probabilities");
+    goto done;
+  }
+
+  result = 1;
+done:
+  RAVE_OBJECT_RELEASE(probability);
+  return result;
+}
+
+int RaveRopoGenerator_sun2(RaveRopoGenerator_t* self, int minDbz, int minLength, int maxThickness, int azimuth, int elevation)
+{
+  RaveFmiImage_t* probability = NULL;
+
+  int result = 0;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  if (self->image == NULL) {
+    RAVE_ERROR0("Calling sun when there is no image to operate on?");
+    goto done;
+  }
+
+  probability = RAVE_OBJECT_CLONE(self->image);
+  if (probability == NULL) {
+    RAVE_CRITICAL0("Failed to clone image");
+    goto done;
+  }
+
+  if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
+      !RaveRopoGeneratorInternal_addTaskArgs(probability, "SUN2: %d,%d,%d,%d,%d", minDbz, minLength, maxThickness,azimuth,elevation)) {
+    RAVE_CRITICAL0("Failed to add task arguments");
+    goto done;
+  }
+
+  detect_sun2(RaveFmiImage_getImage(self->image),
+              RaveFmiImage_getImage(probability),
+              RaveRopoGeneratorInternal_valueToByteRange(minDbz, self->image),
+              maxThickness,
+              minLength,
+              azimuth,
+              elevation);
+
+  if (!RaveObjectList_add(self->probabilities, (RaveCoreObject*)probability)) {
+    RAVE_ERROR0("Failed to add probability field to probabilities");
+    goto done;
+  }
+
+  result = 1;
+done:
+  RAVE_OBJECT_RELEASE(probability);
+  return result;
+}
 
 int RaveRopoGenerator_classify(RaveRopoGenerator_t* self)
 {

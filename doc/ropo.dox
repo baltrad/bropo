@@ -1,13 +1,222 @@
 /*!
  \mainpage bRopo - a baltrad version of the FMI developed detector framework ropo
 
+ \author Anders Henja (anders@henjab.se)
 
  \section Introduction
  bRopo is an adaption of the existing FMI software package ROPO. The bRopo is adapted
  to integrate with the RAVE framework and also to provide users with a python
- interface.   
+ interface.
+ 
+ \section Detectors
+ bRopo contains a number of detectors, most of them are accessible through the RAVE API
+ but all detectors that are working on volumes, like ground hit are not supported at this time.
+ 
+ \subsection detector_speck Speck
+   T.B.D by Daniel
+   <MIN_DBZ> <max_a>  Threshold by min dBz, detect specks < A 
+   -20dBz     5pix
 
+ \subsection detector_specknormold SpeckNormOld
+  T.B.D by Daniel
+  <MIN_DBZ> <max_a> <max_n>  Threshold by min dBz, then detect specks, size A_max_range <=> size N*A A \n");
+  -20        5       16
 
+ \subsection detector_emitter Emitter
+  T.B.D by Daniel
+  <MIN_DBZ> <LENGTH>   Filter unity-width emitter lines
+   10dbz      4
+
+ \subsection detector_emitter2 Emitter 2
+  T.B.D by Daniel
+  <MIN_DBZ> <LENGTH> <width> 	 Filter emitter lines
+  -10dbz     4bins    2
+  
+ \subsection detector_clutter Clutter
+  T.B.D by Daniel
+  <MIN_DBZ> <max_incomp>	 Remove specks under incompactness A
+  -5         5
+   
+ \subsection detector_clutter2 Clutter 2
+  T.B.D by Daniel
+  <MIN_DBZ> <max_smooth> Remove specks under smoothness
+  -5           60
+  
+ \subsection detector_softcut Softcut
+  T.B.D by Daniel
+  <max_dbz>     <r>     <r2>	 Remove insect band
+  -10dbz    250km   100km
+  
+ \subsection detector_biomet Biomet
+  T.B.D by Daniel
+  <dbz_max> <dbz_delta> <alt_max> <alt_delta>   Remove insect band
+  -10dbz      5dBZ       5000m     1km
+  
+ \subsection detector_ship Ship
+  T.B.D by Daniel
+  <min rel DBZ> <min A> Remove ships
+  50           20
+  
+ \subsection detector_sun Sun
+  T.B.D by Daniel
+  <MIN_DBZ>  <min_length> <max_thickness>      Remove sun 
+   -20dBZ        100           3
+   
+ \subsection detector_sun2 Sun 2
+  T.B.D by Daniel
+  <MIN_DBZ>  <min_length> <max_thickness> <azimuth> <elevation>   Remove sun 
+  -20dBZ        100          3             45        2
+  
+  \section ropo_api C API
+  To integrate cleanly with rave some wrappers has been implemented that wraps all ROPO
+  functionallity in Rave Objects so that it is possible to send the objects around and also
+  integrate properly with the rave python apis.
+  
+  Two main objects has been defined, \ref RaveFmiImage_t and \ref RaveRopoGenerator_t. This contains most
+  of the functionallity you need when running the detectors. On top of this, you will need to be familiar
+  with the different RAVE objects that you might run into. Especially, PolarScan_t and RaveField_t.
+  You are also assumed to have fair knowledge about the RaveIO_t routines.
+  
+  \subsection ropo_api_usage C API Usage
+  We have tried to keep the learning curve down as much as possible so mostly it should just be to
+  get hold of a polar scan. Convert it into a RaveFmiImage_t that you pass into the RaveRopoGenerator.
+  Then, when you have managed to do this, the real job comes to tuning the different detectors to your
+  needs which might be a lot trickier.
+  
+  \verbatim
+static RaveFmiImage_t* getRestoredImage(const char* filename)
+{
+  RaveFmiImage_t* image = NULL;
+  RaveRopoGenerator_t* generator = NULL;
+  PolarScan_t* scan = NULL;
+  RaveIO_t* raveio = NULL;
+  RaveFmiImage_t* result = NULL;
+  
+  raveio = RaveIO_open("some_scan.h5");
+  scan = (PolarScan_t*)RaveIO_getObject(raveio);
+  image = RaveFmiImage_fromRave(scan, "DBZH");
+  generator = RaveRopoGenerator_new(image);
+
+  if (!RaveRopoGenerator_speck(generator, -20, 5) ||
+      !RaveRopoGenerator_emitter(generator, -20, 6)) {
+    goto fail;
+  }
+
+  result = RaveRopoGenerator_restore(50);
+fail:
+  RAVE_OBJECT_RELEASE(generator);
+  RAVE_OBJECT_RELEASE(image);
+  RAVE_OBJECT_RELEASE(scan);
+  RAVE_OBJECT_RELEASE(raveio);
+  return result;
+}
+  \endverbatim
+  
+ As you can see from the above example, it is quite straight forward. Of course you can
+ perform more complex operations, like getting classifications, updating quality information
+ in a polar object etc.
+ Let's assume you have got hold of a classification field, you can easilly add it to a polar
+ scan as a quality field by doing the following.
+ 
+ \verbatim
+ ...
+ RaveFmiImage_t* classification = RaveRopoGenerator_getClassification(generator);
+ RaveField_t* quality = RaveFmiImate_toRaveField(classification);
+ PolarScan_addQuality(scan, quality);
+ RAVE_OBJECT_RELEASE(quality);
+ RAVE_OBJECT_RELEASE(classification);
+ ...
+ \endverbatim
+ 
+ There are a lot more variants on how to work with the API so please refer to the header file for
+ more information.
+ 
+ 
+ \section ropo_python_api Python API
+ In contrast to the C API, the python API is not very chatty and it is very easy to implement
+ compact, easy to understand, detector sequences with a lot of variants on how to get a specific
+ result.
+ 
+ Firstly, all detectors return the generator it self which means that you can easilly chain a number
+ of detectors on one line.
+ 
+ \verbatim
+ b = _ropogenerator.new(image)
+ b.speck(-20,5).emitter(-20,5).ship(15,8)
+ restored = b.restore(50)
+ \endverbatim
+ 
+ Easy enough! Let's assume that you want to run a detector, then update the image itself and then
+ run another detector. This is also a simple operation by using restoreSelf.
+ 
+ \verbatim
+ b.speck(-20,5).restoreSelf().ship(15.8)
+ restored = b.getImage() # Is will returned the image after speck.
+ restored2 = b.restore() # Returns the image with both speck and ship executed.
+ \endverbatim
+ 
+ Let's assume that you are want to get a number of different restored images without having
+ to reinitialize the generator. It can be good to know that the result from all detectors are
+ stacked which means that if you want to get individual classification fields from each
+ detector you will have to run an operation called declassify. Fortunately this is also quite
+ obvious when you have seen it.
+ 
+ \verbatim
+ b = _ropogenerator.new(image)
+ speckprob = b.speck(-20,5).classification
+ speckemitterprob = b.emitter(-20, 5).classification  #speck and emitter classification
+ emitterprob = b.declassify().emitter(-20,5).classification # Only emitter classification
+ \endverbatim
+ 
+ And as usual, there is another way to do the above.
+ 
+ \verbatim
+ b = _ropogenerator.new(image)
+ b.speck(-20,5).emitter(-20,5)
+ speckprob = b.getProbabilityField(0)
+ emitterprob = b.getProbabilityField(0)
+ speckemitterprob = b.classification
+ \endverbatim
+ 
+ All detectors will store some meta information in the fmi image so that you are able to
+ identify what has been done on the image. The two arguments how/task and how/task_args
+ contain this information. You can get hold of it by doing the following
+
+ \verbatim 
+ b = _ropogenerator.new(image)
+ c = b.speck(-20,5).emitter(-20,5).classification
+ print "TASK: %s"%c.getAttribute("how/task") # prints TASK: fi.fmi.ropo.detector.classification
+ print "ARGS: %s"%c.getAttribute("how/task_args") # prints ARGS: SPECK: -20,5; EMITTER: -20,5
+ \endverbatim
+
+ That was a brief explanation on how to use the python API, what values you should provide to the
+ different detectors is up to the user and will not be covered here.
+ 
+ To give you a head start on how to use the rave support to run the different detectors and store
+ the result. The following example will process all DBZH parameters in the volume with the three
+ detectors speck, emitter and ship. Then it will store the classification (probability field) and
+ the restored image as quality parameters in the scans. Finally it will store the file with the
+ name myprocessedvolume.h5.
+  
+ \verbatim
+ volume = _raveio.open("myvolume.h5").object
+ for i in range(volume.getNumberOfScans()):
+   scan = volume.getScan(0)
+   fmiimg = _fmiimage.fromRave(scan, "DBZH")
+   generator = _ropogenerator.new(fmiimg)
+   classification = generator.speck(-20, 5).emitter(-20, 6).ship(20,30).classification
+   restored = generator.restored(50)
+   scan.getParameter("DBZH").addQuality(classification.toRaveField())
+   scan.getParameter("DBZH").addQuality(restored.toRaveField())
+ 
+ output = _raveio.new()
+ output.object = volume
+ output.filename = "myprocessedvolume.h5"
+ output.save()
+ \endverbatim
+ 
+  
+ 
 */
   
   

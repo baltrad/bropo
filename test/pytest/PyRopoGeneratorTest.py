@@ -56,52 +56,62 @@ class PyRopoGeneratorTest(unittest.TestCase):
   def testSpeck(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
-    b.speck(-20, 5);
-    
-    output = _raveio.new()
-    output.object = b.getImage().toPolarScan("DBZH")
-    output.filename = self.TEMPORARY_FILE
-    output.save()
+    b.speck(-20, 5)
 
   def testSpeckNormOld(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
-    b.speckNormOld(-20, 5, 16);
-    
-    output = _raveio.new()
-    output.object = b.getImage().toPolarScan("DBZH")
-    output.filename = self.TEMPORARY_FILE
-    output.save()
+    b.speckNormOld(-20, 5, 16)
 
   def testEmitter(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
-    b.speck(3, 6);
-    
-    output = _raveio.new()
-    output.object = b.getImage().toPolarScan("DBZH")
-    output.filename = self.TEMPORARY_FILE
-    output.save()
+    b.emitter(-10, 4)
 
   def testEmitter2(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
-    b.speck(3, 6);
+    b.emitter2(-10, 4, 2)
     
-    output = _raveio.new()
-    output.object = b.getImage().toPolarScan("DBZH")
-    output.filename = self.TEMPORARY_FILE
-    output.save()
-
-  def testSpeckAndEmitter(self):
+  def testClutter(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
-    b.speck(-20, 5).emitter(3,6)
-    
-    output = _raveio.new()
-    output.object = b.getImage().toPolarScan("DBZH")
-    output.filename = self.TEMPORARY_FILE
-    output.save()
+    b.clutter(-5, 5)
+
+  def testClutter2(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    b.clutter(-5, 60)
+
+  def testSoftcut(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    b.softcut(-10, 250, 100)
+
+  def testBiomet(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    b.biomet(-10, 5, 5000, 1)
+
+  def testShip(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    b.ship(15, 8)
+
+  def testSun(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    b.sun(-10, 32, 3)
+
+  def testSun2(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    b.sun2(-10, 32, 3, 45, 2)
+
+  def testChaining_speckEmitterEmitter2Clutter(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    b.speck(-20, 5).emitter(-10,4).emitter2(-10,4,2).clutter(-5,5)
 
   def testClassify(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)

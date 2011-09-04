@@ -101,6 +101,92 @@ int RaveRopoGenerator_emitter(RaveRopoGenerator_t* self, int minDbz, int length)
 int RaveRopoGenerator_emitter2(RaveRopoGenerator_t* self, int minDbz, int length, int width);
 
 /**
+ * Remove specks under incompactness A
+ * Example: -5 5
+ *
+ * @param[in] self - self
+ * @param[in] minDbz - min dbz
+ * @param[in] maxCompactness - the max compactness A
+ * @return 1 on success otherwise 0
+ */
+int RaveRopoGenerator_clutter(RaveRopoGenerator_t* self, int minDbz, int maxCompactness);
+
+/**
+ * Remove specks under smoothness
+ * Example: -5 60
+ *
+ * @param[in] self - self
+ * @param[in] minDbz - min dbz
+ * @param[in] maxSmoothness - the max smoothness
+ * @return 1 on success otherwise 0
+ */
+int RaveRopoGenerator_clutter2(RaveRopoGenerator_t* self, int minDbz, int maxSmoothness);
+
+/**
+ * Remove insect band.
+ * Example: -10dbz    250km   100km
+ * @param[in] self - self
+ * @param[in] maxDbz - max dbz
+ * @param[in] r - r
+ * @param[in] r2 - r2
+ * @return 1 on success otherwise 0
+ */
+int RaveRopoGenerator_softcut(RaveRopoGenerator_t* self, int maxDbz, int r, int r2);
+
+/**
+ * Remove insect band.
+ * Example: -10dbz      5dBZ       5000m     1km
+ * <dbz_max> <dbz_delta> <alt_max> <alt_delta>
+ * @param[in] self - self
+ * @param[in] maxDbz - max dbz
+ * @param[in] dbzDelta - relative dbz
+ * @param[in] maxAlt - max altitude
+ * @param[in] altDelta - altitude delta
+ *
+ * @return 1 on success otherwise 0
+ */
+int RaveRopoGenerator_biomet(RaveRopoGenerator_t* self, int maxDbz, int dbzDelta, int maxAlt, int altDelta);
+
+/**
+ * Remove ships.
+ * Example: 50 20
+ *
+ * @param[in] self - self
+ * @param[in] minRelDbz - min relative DBZ
+ * @param[in] minA - min A
+ *
+ * @return 1 on success otherwise 0
+ */
+int RaveRopoGenerator_ship(RaveRopoGenerator_t* self, int minRelDbz, int minA);
+
+/**
+ * Remove sun.
+ * Example: -20dbz 100bins 3
+ *
+ * @param[in] self - self
+ * @param[in] minDbz - min dbz
+ * @param[in] minLength - min length
+ * @param[in] maxThickness - max thickness
+ *
+ * @return 1 on success otherwise 0
+ */
+int RaveRopoGenerator_sun(RaveRopoGenerator_t* self, int minDbz, int minLength, int maxThickness);
+
+/**
+ * Remove sun.
+ * Example: -20dBZ  100bins  3 45 2
+ *
+ * @param[in] self - self
+ * @param[in] minDbz - min dbz
+ * @param[in] minLength - min length
+ * @param[in] maxThickness - max thickness
+ * @param[in] azimuth - the azimuth
+ * @param[in] elevation - the elevation
+ * @return 1 on success otherwise 0
+ */
+int RaveRopoGenerator_sun2(RaveRopoGenerator_t* self, int minDbz, int minLength, int maxThickness, int azimuth, int elevation);
+
+/**
  * Updates the classifications with the currently kept probability fields
  * @param[in] self - self
  * @return 1 on success otherwise 0

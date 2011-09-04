@@ -159,6 +159,12 @@ static PyObject* _pyropogenerator_new(PyObject* self, PyObject* args)
   }
 }
 
+/**
+ * Returns the image that this generator is run on.
+ * @param[in] self - self
+ * @param[in] args - N/A
+ * @return the PyFmiImage on success otherwise NULL
+ */
 static PyObject* _pyropogenerator_getImage(PyRopoGenerator* self, PyObject* args)
 {
   RaveFmiImage_t* image = NULL;
@@ -179,6 +185,12 @@ static PyObject* _pyropogenerator_getImage(PyRopoGenerator* self, PyObject* args
   Py_RETURN_NONE;
 }
 
+/**
+ * Sets the image this generator should be run on.
+ * @param[in] self - self
+ * @param[in] args - the PyFmiImage object
+ * @return NONE on success otherwise NULL
+ */
 static PyObject* _pyropogenerator_setImage(PyRopoGenerator* self, PyObject* args)
 {
   PyObject* inptr = NULL;
@@ -192,6 +204,12 @@ static PyObject* _pyropogenerator_setImage(PyRopoGenerator* self, PyObject* args
   Py_RETURN_NONE;
 }
 
+/**
+ * See \ref RaveRopoGenerator_speck
+ * @param[in] self - self
+ * @param[in] args - ii (minDbz, maxA)
+ * @return self on success otherwise NULL
+ */
 static PyObject* _pyropogenerator_speck(PyRopoGenerator* self, PyObject* args)
 {
   int minDbz = 0, maxA = 0;
@@ -204,6 +222,12 @@ static PyObject* _pyropogenerator_speck(PyRopoGenerator* self, PyObject* args)
   return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
 }
 
+/**
+ * See \ref RaveRopoGenerator_speckNormOld
+ * @param[in] self - self
+ * @param[in] args - iii (minDbz, maxA, maxN)
+ * @return self on success otherwise NULL
+ */
 static PyObject* _pyropogenerator_speckNormOld(PyRopoGenerator* self, PyObject* args)
 {
   int minDbz = 0, maxA = 0, maxN = 0;
@@ -216,7 +240,12 @@ static PyObject* _pyropogenerator_speckNormOld(PyRopoGenerator* self, PyObject* 
   return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
 }
 
-
+/**
+ * See \ref RaveRopoGenerator_emitter
+ * @param[in] self - self
+ * @param[in] args - ii (minDbz, length)
+ * @return self on success otherwise NULL
+ */
 static PyObject* _pyropogenerator_emitter(PyRopoGenerator* self, PyObject* args)
 {
   int minDbz = 0, length = 0;
@@ -229,6 +258,12 @@ static PyObject* _pyropogenerator_emitter(PyRopoGenerator* self, PyObject* args)
   return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
 }
 
+/**
+ * See \ref RaveRopoGenerator_emitter2
+ * @param[in] self - self
+ * @param[in] args - iii (minDbz, length, width)
+ * @return self on success otherwise NULL
+ */
 static PyObject* _pyropogenerator_emitter2(PyRopoGenerator* self, PyObject* args)
 {
   int minDbz = 0, length = 0, width = 0;
@@ -241,6 +276,138 @@ static PyObject* _pyropogenerator_emitter2(PyRopoGenerator* self, PyObject* args
   return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
 }
 
+/**
+ * See \ref RaveRopoGenerator_clutter
+ * @param[in] self - self
+ * @param[in] args - ii (minDbz, maxCompactness)
+ * @return self on success otherwise NULL
+ */
+static PyObject* _pyropogenerator_clutter(PyRopoGenerator* self, PyObject* args)
+{
+  int minDbz = 0, maxCompactness = 0;
+  if (!PyArg_ParseTuple(args, "ii", &minDbz, &maxCompactness)) {
+    return NULL;
+  }
+  if (!RaveRopoGenerator_clutter(self->generator, minDbz, maxCompactness)) {
+    raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to run clutter");
+  }
+  return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
+}
+
+/**
+ * See \ref RaveRopoGenerator_clutter2
+ * @param[in] self - self
+ * @param[in] args - ii (minDbz, maxSmoothness)
+ * @return self on success otherwise NULL
+ */
+static PyObject* _pyropogenerator_clutter2(PyRopoGenerator* self, PyObject* args)
+{
+  int minDbz = 0, maxSmoothness = 0;
+  if (!PyArg_ParseTuple(args, "ii", &minDbz, &maxSmoothness)) {
+    return NULL;
+  }
+  if (!RaveRopoGenerator_clutter2(self->generator, minDbz, maxSmoothness)) {
+    raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to run clutter2");
+  }
+  return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
+}
+
+/**
+ * See \ref RaveRopoGenerator_softcut
+ * @param[in] self - self
+ * @param[in] args - iii (maxDbz, r, r2)
+ * @return self on success otherwise NULL
+ */
+static PyObject* _pyropogenerator_softcut(PyRopoGenerator* self, PyObject* args)
+{
+  int maxDbz = 0, r = 0, r2 = 0;
+  if (!PyArg_ParseTuple(args, "iii", &maxDbz, &r, &r2)) {
+    return NULL;
+  }
+  if (!RaveRopoGenerator_softcut(self->generator, maxDbz, r, r2)) {
+    raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to run softcut");
+  }
+  return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
+}
+
+/**
+ * See \ref RaveRopoGenerator_biomet
+ * @param[in] self - self
+ * @param[in] args - iiii (maxDbz, dbzDelta, maxAlt, altDelta)
+ * @return self on success otherwise NULL
+ */
+static PyObject* _pyropogenerator_biomet(PyRopoGenerator* self, PyObject* args)
+{
+  int maxDbz = 0, dbzDelta = 0, maxAlt = 0, altDelta;
+  if (!PyArg_ParseTuple(args, "iiii", &maxDbz, &dbzDelta, &maxAlt, &altDelta)) {
+    return NULL;
+  }
+  if (!RaveRopoGenerator_biomet(self->generator, maxDbz, dbzDelta, maxAlt, altDelta)) {
+    raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to run biomet");
+  }
+  return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
+}
+
+/**
+ * See \ref RaveRopoGenerator_ship
+ * @param[in] self - self
+ * @param[in] args - ii (minRelDbz, minA)
+ * @return self on success otherwise NULL
+ */
+static PyObject* _pyropogenerator_ship(PyRopoGenerator* self, PyObject* args)
+{
+  int minRelDbz = 0, minA = 0;
+  if (!PyArg_ParseTuple(args, "ii", &minRelDbz, &minA)) {
+    return NULL;
+  }
+  if (!RaveRopoGenerator_ship(self->generator, minRelDbz, minA)) {
+    raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to run ship");
+  }
+  return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
+}
+
+/**
+ * See \ref RaveRopoGenerator_sun
+ * @param[in] self - self
+ * @param[in] args - iii (minDbz, minLength, maxThickness)
+ * @return self on success otherwise NULL
+ */
+static PyObject* _pyropogenerator_sun(PyRopoGenerator* self, PyObject* args)
+{
+  int minDbz = 0, minLength = 0, maxThickness = 0;
+  if (!PyArg_ParseTuple(args, "iii", &minDbz, &minLength, &maxThickness)) {
+    return NULL;
+  }
+  if (!RaveRopoGenerator_sun(self->generator, minDbz, minLength, maxThickness)) {
+    raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to run sun");
+  }
+  return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
+}
+
+/**
+ * See \ref RaveRopoGenerator_sun2
+ * @param[in] self - self
+ * @param[in] args - iiiii (minDbz, minLength, maxThickness,azimuth,elevation)
+ * @return self on success otherwise NULL
+ */
+static PyObject* _pyropogenerator_sun2(PyRopoGenerator* self, PyObject* args)
+{
+  int minDbz = 0, minLength = 0, maxThickness = 0, azimuth = 0, elevation = 0;
+  if (!PyArg_ParseTuple(args, "iiiii", &minDbz, &minLength, &maxThickness, &azimuth, &elevation)) {
+    return NULL;
+  }
+  if (!RaveRopoGenerator_sun2(self->generator, minDbz, minLength, maxThickness, azimuth, elevation)) {
+    raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to run sun2");
+  }
+  return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
+}
+
+/**
+ * See \ref RaveRopoGenerator_classify
+ * @param[in] self - self
+ * @param[in] args - N/A
+ * @return self on success otherwise NULL
+ */
 static PyObject* _pyropogenerator_classify(PyRopoGenerator* self, PyObject* args)
 {
   if (!PyArg_ParseTuple(args, "")) {
@@ -252,6 +419,12 @@ static PyObject* _pyropogenerator_classify(PyRopoGenerator* self, PyObject* args
   return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
 }
 
+/**
+ * See \ref RaveRopoGenerator_declassify
+ * @param[in] self - self
+ * @param[in] args - N/A
+ * @return self on success otherwise NULL
+ */
 static PyObject* _pyropogenerator_declassify(PyRopoGenerator* self, PyObject* args)
 {
   if (!PyArg_ParseTuple(args, "")) {
@@ -261,6 +434,12 @@ static PyObject* _pyropogenerator_declassify(PyRopoGenerator* self, PyObject* ar
   return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
 }
 
+/**
+ * See \ref RaveRopoGenerator_restore
+ * @param[in] self - self
+ * @param[in] args - ii (threshold)
+ * @return The restored PyFmiImage on success otherwise NULL
+ */
 static PyObject* _pyropogenerator_restore(PyRopoGenerator* self, PyObject* args)
 {
   RaveFmiImage_t* image = NULL;
@@ -278,6 +457,12 @@ static PyObject* _pyropogenerator_restore(PyRopoGenerator* self, PyObject* args)
   return result;
 }
 
+/**
+ * See \ref RaveRopoGenerator_restoreSelf
+ * @param[in] self - self
+ * @param[in] args - i (threshold)
+ * @return self on success otherwise NULL
+ */
 static PyObject* _pyropogenerator_restoreSelf(PyRopoGenerator* self, PyObject* args)
 {
   int threshold = 0;
@@ -290,6 +475,12 @@ static PyObject* _pyropogenerator_restoreSelf(PyRopoGenerator* self, PyObject* a
   return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
 }
 
+/**
+ * See \ref RaveRopoGenerator_getProbabilityFieldCount
+ * @param[in] self - self
+ * @param[in] args - N/A
+ * @return the number of probability fields
+ */
 static PyObject* _pyropogenerator_getProbabilityFieldCount(PyRopoGenerator* self, PyObject* args)
 {
   if (!PyArg_ParseTuple(args, "")) {
@@ -298,6 +489,12 @@ static PyObject* _pyropogenerator_getProbabilityFieldCount(PyRopoGenerator* self
   return PyLong_FromLong((int)RaveRopoGenerator_getProbabilityFieldCount(self->generator));
 }
 
+/**
+ * See \ref RaveRopoGenerator_getProbabilityField
+ * @param[in] self - self
+ * @param[in] args - i (index)
+ * @return self on success otherwise NULL
+ */
 static PyObject* _pyropogenerator_getProbabilityField(PyRopoGenerator* self, PyObject* args)
 {
   RaveFmiImage_t* image = NULL;
@@ -329,6 +526,13 @@ static struct PyMethodDef _pyropogenerator_methods[] =
   {"speckNormOld", (PyCFunction)_pyropogenerator_speckNormOld, 1},
   {"emitter", (PyCFunction)_pyropogenerator_emitter, 1},
   {"emitter2", (PyCFunction)_pyropogenerator_emitter2, 1},
+  {"clutter", (PyCFunction)_pyropogenerator_clutter, 1},
+  {"clutter2", (PyCFunction)_pyropogenerator_clutter2, 1},
+  {"softcut", (PyCFunction)_pyropogenerator_softcut, 1},
+  {"biomet", (PyCFunction)_pyropogenerator_biomet, 1},
+  {"ship", (PyCFunction)_pyropogenerator_ship, 1},
+  {"sun", (PyCFunction)_pyropogenerator_sun, 1},
+  {"sun2", (PyCFunction)_pyropogenerator_sun2, 1},
   {"classify", (PyCFunction)_pyropogenerator_classify, 1},
   {"declassify", (PyCFunction)_pyropogenerator_declassify, 1},
   {"restore", (PyCFunction)_pyropogenerator_restore, 1},

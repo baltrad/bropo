@@ -52,6 +52,11 @@ class PyRopoGeneratorTest(unittest.TestCase):
     self.assertTrue(image==a.getImage())
     a.setImage(image2)
     self.assertTrue(image2==a.getImage())
+
+  def testThreshold(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    b.threshold(80)
   
   def testSpeck(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)

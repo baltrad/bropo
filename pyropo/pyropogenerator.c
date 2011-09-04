@@ -205,6 +205,22 @@ static PyObject* _pyropogenerator_setImage(PyRopoGenerator* self, PyObject* args
 }
 
 /**
+ * See \ref RaveRopoGenerator_threshold
+ * @param[in] self - self
+ * @param[in] args - i (threshold)
+ * @return self on success otherwise NULL
+ */
+static PyObject* _pyropogenerator_threshold(PyRopoGenerator* self, PyObject* args)
+{
+  int threshold = 0;
+  if (!PyArg_ParseTuple(args, "i", &threshold)) {
+    return NULL;
+  }
+  RaveRopoGenerator_threshold(self->generator, threshold);
+  return (PyObject*)PyRopoGenerator_New(self->generator, NULL);
+}
+
+/**
  * See \ref RaveRopoGenerator_speck
  * @param[in] self - self
  * @param[in] args - ii (minDbz, maxA)
@@ -522,6 +538,7 @@ static struct PyMethodDef _pyropogenerator_methods[] =
   {"markers", NULL},
   {"getImage", (PyCFunction)_pyropogenerator_getImage, 1},
   {"setImage", (PyCFunction)_pyropogenerator_setImage, 1},
+  {"threshold", (PyCFunction)_pyropogenerator_threshold, 1},
   {"speck", (PyCFunction)_pyropogenerator_speck, 1},
   {"speckNormOld", (PyCFunction)_pyropogenerator_speckNormOld, 1},
   {"emitter", (PyCFunction)_pyropogenerator_emitter, 1},

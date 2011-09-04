@@ -360,6 +360,20 @@ RaveFmiImage_t* RaveRopoGenerator_getImage(RaveRopoGenerator_t* self)
   return RAVE_OBJECT_COPY(self->image);
 }
 
+void RaveRopoGenerator_threshold(RaveRopoGenerator_t* self, int threshold)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  if (self->image == NULL) {
+    RAVE_ERROR0("Calling threshold when there is no image to operate on?");
+    return;
+  }
+
+  threshold_image(RaveFmiImage_getImage(self->image),
+                  RaveFmiImage_getImage(self->image),
+                  threshold);
+}
+
 int RaveRopoGenerator_speck(RaveRopoGenerator_t* self, int minDbz, int maxA)
 {
   RaveFmiImage_t* probability = NULL;

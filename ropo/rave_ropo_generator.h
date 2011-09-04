@@ -56,6 +56,15 @@ void RaveRopoGenerator_setImage(RaveRopoGenerator_t* self, RaveFmiImage_t* image
 RaveFmiImage_t* RaveRopoGenerator_getImage(RaveRopoGenerator_t* self);
 
 /**
+ * This will force a thresholding on the image. This will affect the image
+ * it self and is not recoverable.
+ * @param[in] self - self
+ * @param[in] threshold - the threshold value
+ * @return N/A
+ */
+void RaveRopoGenerator_threshold(RaveRopoGenerator_t* self, int threshold);
+
+/**
  * Threshold by min dBz, detect specks < A
  * Example: -20dBz     5pix
  *

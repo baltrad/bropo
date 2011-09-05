@@ -342,6 +342,35 @@ static int RaveRopoGeneratorInternal_valueToByteRange(int value, RaveFmiImage_t*
 }
 
 /**
+ * Creates a valid 8 bit value in range 0-255 from the wanted value translated
+ * with the gain. This is assumed to be corresponding to the function \ref rel_dbz_to_byte.
+ *
+ * @param[in] value - the requested relative value, e.g. 20 (dBZ)
+ * @param[in] image - image (from where offset and gain are fetched)
+ * @return the converted rel value (0-255) on success and negative value on failure.
+ */
+static int RaveRopoGeneratorInternal_relValueToByteRange(int value, RaveFmiImage_t* image)
+{
+  int result = -1;
+  double gain = 0.0;
+
+  RAVE_ASSERT((image != NULL), "image == NULL");
+
+  gain = RaveFmiImage_getGain(image);
+
+  if (gain != 0.0) {
+    result = (int)(value/gain);
+  }
+  if (result <= 0) {
+    result = 0;
+  } else if (result >= 255) {
+    result = 255;
+  }
+  return result;
+}
+
+
+/**
  * Clears the classification information. Should be run at the end of all
  * detectors so that proper classficiation information can be returned.
  * @param[in] self - self
@@ -692,7 +721,7 @@ int RaveRopoGenerator_biomet(RaveRopoGenerator_t* self, int maxDbz, int dbzDelta
   detect_biomet(RaveFmiImage_getImage(self->image),
                 RaveFmiImage_getImage(probability),
                 RaveRopoGeneratorInternal_valueToByteRange(maxDbz, self->image),
-                rel_dbz_to_byte(dbzDelta),
+                RaveRopoGeneratorInternal_relValueToByteRange(dbzDelta, self->image),
                 maxAlt,
                 altDelta);
 
@@ -724,7 +753,7 @@ int RaveRopoGenerator_ship(RaveRopoGenerator_t* self, int minRelDbz, int minA)
 
   detect_ships(RaveFmiImage_getImage(self->image),
                RaveFmiImage_getImage(probability),
-               rel_dbz_to_byte(minRelDbz),
+               RaveRopoGeneratorInternal_relValueToByteRange(minRelDbz, self->image),
                minA);
 
   if (!RaveObjectList_add(self->probabilities, (RaveCoreObject*)probability)) {

@@ -75,9 +75,10 @@ $(TARGET): $(DEPDIR) $(OBJECTS)
 
 .PHONY=install
 install:
-	@mkdir --parents ${prefix}/include/
-	@mkdir --parents ${prefix}/lib/
-	@cp -v -u *.h ${prefix}/include/
+	@mkdir -p ${prefix}/include/
+	@mkdir -p ${prefix}/lib/
+	@cp -v -f *.h ${prefix}/include/
+	@cp -v -f $(TARGET) ${prefix}/lib/
 
 .PHONY=clean
 clean:

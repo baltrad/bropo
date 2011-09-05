@@ -21,7 +21,7 @@ Byte LAST_FILTER;
 
 void
 help(){
-  #include "ropo_help.c"
+  ropo_help();
 }
 
 void update_classification(FmiImage *mark,FmiImage *prob,FmiImage *master_prob,Byte marker){

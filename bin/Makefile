@@ -72,8 +72,8 @@ $(TARGET): $(DEPDIR) $(OBJECTS) ../ropo/libbropo.so
 
 .PHONY=install
 install:
-	@mkdir --parents ${prefix}/bin/
-	@cp -v -u $(TARGET) ${prefix}/bin/
+	@mkdir -p ${prefix}/bin/
+	@cp -v -f $(TARGET) ${prefix}/bin/
 
 .PHONY=clean
 clean:

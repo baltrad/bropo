@@ -131,6 +131,25 @@ class PyRopoGeneratorTest(unittest.TestCase):
     self.assertTrue(string.find(b.markers.getAttribute("how/task_args"), "SPECK:") >= 0)
     self.assertTrue(string.find(b.markers.getAttribute("how/task_args"), "EMITTER:") >= 0)
 
+  def testClassify_reclassification(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    b.speck(-20, 5).emitter(3,6).classify()
+    
+    self.assertEquals("fi.fmi.ropo.detector.classification", b.classification.getAttribute("how/task"))
+    self.assertTrue(string.find(b.classification.getAttribute("how/task_args"), "SPECK:") >= 0)
+    self.assertTrue(string.find(b.classification.getAttribute("how/task_args"), "EMITTER:") >= 0)
+
+    self.assertEquals("fi.fmi.ropo.detector.classification_marker", b.markers.getAttribute("how/task"))
+    self.assertTrue(string.find(b.markers.getAttribute("how/task_args"), "SPECK:") >= 0)
+    self.assertTrue(string.find(b.markers.getAttribute("how/task_args"), "EMITTER:") >= 0)
+
+    b.clutter(-5, 5).classify()
+    self.assertEquals("fi.fmi.ropo.detector.classification", b.classification.getAttribute("how/task"))
+    self.assertTrue(string.find(b.classification.getAttribute("how/task_args"), "SPECK:") >= 0)
+    self.assertTrue(string.find(b.classification.getAttribute("how/task_args"), "EMITTER:") >= 0)
+    self.assertTrue(string.find(b.classification.getAttribute("how/task_args"), "CLUTTER:") >= 0)
+
   def testDeclassify(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))

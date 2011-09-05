@@ -341,6 +341,17 @@ static int RaveRopoGeneratorInternal_valueToByteRange(int value, RaveFmiImage_t*
   return result;
 }
 
+/**
+ * Clears the classification information. Should be run at the end of all
+ * detectors so that proper classficiation information can be returned.
+ * @param[in] self - self
+ */
+static void RaveRopoGeneratorInternal_removeClassifications(RaveRopoGenerator_t* self)
+{
+  RAVE_OBJECT_RELEASE(self->classification);
+  RAVE_OBJECT_RELEASE(self->markers);
+}
+
 /*@} End of Private functions */
 
 /*@{ Interface functions */
@@ -412,6 +423,8 @@ int RaveRopoGenerator_speck(RaveRopoGenerator_t* self, int minDbz, int maxA)
     goto done;
   }
 
+  RaveRopoGeneratorInternal_removeClassifications(self);
+
   result = 1;
 done:
   RAVE_OBJECT_RELEASE(probability);
@@ -457,6 +470,8 @@ int RaveRopoGenerator_speckNormOld(RaveRopoGenerator_t* self, int minDbz, int ma
     goto done;
   }
 
+  RaveRopoGeneratorInternal_removeClassifications(self);
+
   result = 1;
 done:
   RAVE_OBJECT_RELEASE(probability);
@@ -496,6 +511,8 @@ int RaveRopoGenerator_emitter(RaveRopoGenerator_t* self, int minDbz, int length)
     RAVE_ERROR0("Failed to add probability field to probabilities");
     goto done;
   }
+
+  RaveRopoGeneratorInternal_removeClassifications(self);
 
   result = 1;
 done:
@@ -538,6 +555,8 @@ int RaveRopoGenerator_emitter2(RaveRopoGenerator_t* self, int minDbz, int length
     RAVE_ERROR0("Failed to add probability field to probabilities");
     goto done;
   }
+
+  RaveRopoGeneratorInternal_removeClassifications(self);
 
   result = 1;
 done:
@@ -583,6 +602,8 @@ int RaveRopoGenerator_clutter(RaveRopoGenerator_t* self, int minDbz, int maxComp
     goto done;
   }
 
+  RaveRopoGeneratorInternal_removeClassifications(self);
+
   result = 1;
 done:
   RAVE_OBJECT_RELEASE(probability);
@@ -627,6 +648,8 @@ int RaveRopoGenerator_clutter2(RaveRopoGenerator_t* self, int minDbz, int maxSmo
     goto done;
   }
 
+  RaveRopoGeneratorInternal_removeClassifications(self);
+
   result = 1;
 done:
   RAVE_OBJECT_RELEASE(probability);
@@ -667,6 +690,8 @@ int RaveRopoGenerator_softcut(RaveRopoGenerator_t* self, int maxDbz, int r, int 
     RAVE_ERROR0("Failed to add probability field to probabilities");
     goto done;
   }
+
+  RaveRopoGeneratorInternal_removeClassifications(self);
 
   result = 1;
 done:
@@ -711,6 +736,8 @@ int RaveRopoGenerator_biomet(RaveRopoGenerator_t* self, int maxDbz, int dbzDelta
     goto done;
   }
 
+  RaveRopoGeneratorInternal_removeClassifications(self);
+
   result = 1;
 done:
   RAVE_OBJECT_RELEASE(probability);
@@ -751,6 +778,8 @@ int RaveRopoGenerator_ship(RaveRopoGenerator_t* self, int minRelDbz, int minA)
     RAVE_ERROR0("Failed to add probability field to probabilities");
     goto done;
   }
+
+  RaveRopoGeneratorInternal_removeClassifications(self);
 
   result = 1;
 done:
@@ -793,6 +822,8 @@ int RaveRopoGenerator_sun(RaveRopoGenerator_t* self, int minDbz, int minLength, 
     RAVE_ERROR0("Failed to add probability field to probabilities");
     goto done;
   }
+
+  RaveRopoGeneratorInternal_removeClassifications(self);
 
   result = 1;
 done:
@@ -837,6 +868,8 @@ int RaveRopoGenerator_sun2(RaveRopoGenerator_t* self, int minDbz, int minLength,
     RAVE_ERROR0("Failed to add probability field to probabilities");
     goto done;
   }
+
+  RaveRopoGeneratorInternal_removeClassifications(self);
 
   result = 1;
 done:

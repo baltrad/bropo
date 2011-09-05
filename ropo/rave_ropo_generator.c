@@ -403,6 +403,7 @@ int RaveRopoGenerator_speck(RaveRopoGenerator_t* self, int minDbz, int maxA)
     RAVE_CRITICAL0("Failed to clone image");
     goto done;
   }
+  RaveFmiImage_fill(probability, CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
       !RaveRopoGeneratorInternal_addTaskArgs(probability, "SPECK: %d,%d",minDbz, maxA)) {
@@ -449,6 +450,7 @@ int RaveRopoGenerator_speckNormOld(RaveRopoGenerator_t* self, int minDbz, int ma
     RAVE_CRITICAL0("Failed to clone image");
     goto done;
   }
+  RaveFmiImage_fill(probability, CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
       !RaveRopoGeneratorInternal_addTaskArgs(probability, "SPECKNORMOLD: %d,%d,%d",minDbz, maxA, maxN)) {
@@ -496,6 +498,7 @@ int RaveRopoGenerator_emitter(RaveRopoGenerator_t* self, int minDbz, int length)
     RAVE_CRITICAL0("Failed to clone image");
     goto done;
   }
+  RaveFmiImage_fill(probability, CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
       !RaveRopoGeneratorInternal_addTaskArgs(probability, "EMITTER: %d,%d",minDbz, length)) {
@@ -538,6 +541,7 @@ int RaveRopoGenerator_emitter2(RaveRopoGenerator_t* self, int minDbz, int length
     RAVE_CRITICAL0("Failed to clone image");
     goto done;
   }
+  RaveFmiImage_fill(probability, CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
       !RaveRopoGeneratorInternal_addTaskArgs(probability, "EMITTER2: %d,%d,%d",minDbz, length, width)) {
@@ -582,6 +586,7 @@ int RaveRopoGenerator_clutter(RaveRopoGenerator_t* self, int minDbz, int maxComp
     RAVE_CRITICAL0("Failed to clone image");
     goto done;
   }
+  RaveFmiImage_fill(probability, CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
       !RaveRopoGeneratorInternal_addTaskArgs(probability, "CLUTTER: %d,%d",minDbz, maxCompactness)) {
@@ -628,6 +633,7 @@ int RaveRopoGenerator_clutter2(RaveRopoGenerator_t* self, int minDbz, int maxSmo
     RAVE_CRITICAL0("Failed to clone image");
     goto done;
   }
+  RaveFmiImage_fill(probability, CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
       !RaveRopoGeneratorInternal_addTaskArgs(probability, "CLUTTER2: %d,%d",minDbz, maxSmoothness)) {
@@ -674,6 +680,7 @@ int RaveRopoGenerator_softcut(RaveRopoGenerator_t* self, int maxDbz, int r, int 
     RAVE_CRITICAL0("Failed to clone image");
     goto done;
   }
+  RaveFmiImage_fill(probability, CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
       !RaveRopoGeneratorInternal_addTaskArgs(probability, "SOFTCUT: %d,%d,%d",maxDbz, r, r2)) {
@@ -717,6 +724,7 @@ int RaveRopoGenerator_biomet(RaveRopoGenerator_t* self, int maxDbz, int dbzDelta
     RAVE_CRITICAL0("Failed to clone image");
     goto done;
   }
+  RaveFmiImage_fill(probability, CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
       !RaveRopoGeneratorInternal_addTaskArgs(probability, "BIOMET: %d,%d,%d,%d",maxDbz, dbzDelta, maxAlt, altDelta)) {
@@ -762,6 +770,7 @@ int RaveRopoGenerator_ship(RaveRopoGenerator_t* self, int minRelDbz, int minA)
     RAVE_CRITICAL0("Failed to clone image");
     goto done;
   }
+  RaveFmiImage_fill(probability, CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
       !RaveRopoGeneratorInternal_addTaskArgs(probability, "SHIP: %d,%d",minRelDbz, minA)) {
@@ -805,6 +814,7 @@ int RaveRopoGenerator_sun(RaveRopoGenerator_t* self, int minDbz, int minLength, 
     RAVE_CRITICAL0("Failed to clone image");
     goto done;
   }
+  RaveFmiImage_fill(probability, CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
       !RaveRopoGeneratorInternal_addTaskArgs(probability, "SUN: %d,%d,%d", minDbz, minLength, maxThickness)) {
@@ -849,6 +859,7 @@ int RaveRopoGenerator_sun2(RaveRopoGenerator_t* self, int minDbz, int minLength,
     RAVE_CRITICAL0("Failed to clone image");
     goto done;
   }
+  RaveFmiImage_fill(probability, CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector") ||
       !RaveRopoGeneratorInternal_addTaskArgs(probability, "SUN2: %d,%d,%d,%d,%d", minDbz, minLength, maxThickness,azimuth,elevation)) {
@@ -901,8 +912,8 @@ int RaveRopoGenerator_classify(RaveRopoGenerator_t* self)
     goto done;
   }
 
-  RaveFmiImage_clear(probability, CLEAR);
-  RaveFmiImage_clear(markers, CLEAR);
+  RaveFmiImage_fill(probability, CLEAR);
+  RaveFmiImage_fill(markers, CLEAR);
 
   probCount = RaveObjectList_size(self->probabilities);
 
@@ -971,7 +982,7 @@ RaveFmiImage_t* RaveRopoGenerator_restore(RaveRopoGenerator_t* self, int thresho
     goto done;
   }
 
-  RaveFmiImage_clear(restored, CLEAR);
+  RaveFmiImage_fill(restored, CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(restored, "fi.fmi.ropo.restore") ||
       !RaveRopoGeneratorInternal_addProbabilityTaskArgs(restored, self->probabilities, "RESTORE_THRESH: %d",threshold)) {

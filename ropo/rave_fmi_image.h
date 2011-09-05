@@ -53,11 +53,11 @@ extern RaveCoreObjectType RaveFmiImage_TYPE;
 int RaveFmiImage_initialize(RaveFmiImage_t* self, int width, int height);
 
 /**
- * Clears the image with the provided value.
+ * Fills the image with the provided value.
  * @param[in] self - self
  * @param[in] v - the pixel value to set for all pixels
  */
-void RaveFmiImage_clear(RaveFmiImage_t* self, unsigned char v);
+void RaveFmiImage_fill(RaveFmiImage_t* self, unsigned char v);
 
 /**
  * Returns the internal FmiImage.

@@ -331,7 +331,7 @@ int RaveFmiImage_initialize(RaveFmiImage_t* self, int width, int height)
   return result;
 }
 
-void RaveFmiImage_clear(RaveFmiImage_t* self, unsigned char v)
+void RaveFmiImage_fill(RaveFmiImage_t* self, unsigned char v)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   if (self->image != NULL) {

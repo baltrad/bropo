@@ -220,6 +220,14 @@ void RaveRopoGenerator_declassify(RaveRopoGenerator_t* self);
 RaveFmiImage_t* RaveRopoGenerator_restore(RaveRopoGenerator_t* self, int threshold);
 
 /**
+ * Creates a restored image according to the classification table, filling in holes.
+ * @param[in] self - self
+ * @param[in] threshold - the probability threshold
+ * @return the restored image.
+ */
+RaveFmiImage_t* RaveRopoGenerator_restore2(RaveRopoGenerator_t* self, int threshold);
+
+/**
  * Restores self. Basically the same as \ref RaveRopoGenerator_restore followed
  * by a \ref RaveRopoGenerator_setImage but the probability fields aren't
  * removed.

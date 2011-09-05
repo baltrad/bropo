@@ -474,6 +474,29 @@ static PyObject* _pyropogenerator_restore(PyRopoGenerator* self, PyObject* args)
 }
 
 /**
+ * See \ref RaveRopoGenerator_restore2
+ * @param[in] self - self
+ * @param[in] args - ii (threshold)
+ * @return The restored PyFmiImage on success otherwise NULL
+ */
+static PyObject* _pyropogenerator_restore2(PyRopoGenerator* self, PyObject* args)
+{
+  RaveFmiImage_t* image = NULL;
+  PyObject* result = NULL;
+  int threshold = 0;
+  if (!PyArg_ParseTuple(args, "i", &threshold)) {
+    return NULL;
+  }
+  image = RaveRopoGenerator_restore2(self->generator, threshold);
+  if (image == NULL) {
+    raiseException_returnNULL(PyExc_RuntimeWarning, "Failed to classify detector sequence");
+  }
+  result = (PyObject*)PyFmiImage_New(image, 0, 0);
+  RAVE_OBJECT_RELEASE(image);
+  return result;
+}
+
+/**
  * See \ref RaveRopoGenerator_restoreSelf
  * @param[in] self - self
  * @param[in] args - i (threshold)
@@ -553,6 +576,7 @@ static struct PyMethodDef _pyropogenerator_methods[] =
   {"classify", (PyCFunction)_pyropogenerator_classify, 1},
   {"declassify", (PyCFunction)_pyropogenerator_declassify, 1},
   {"restore", (PyCFunction)_pyropogenerator_restore, 1},
+  {"restore2", (PyCFunction)_pyropogenerator_restore2, 1},
   {"restoreSelf", (PyCFunction)_pyropogenerator_restoreSelf, 1},
   {"getProbabilityFieldCount", (PyCFunction)_pyropogenerator_getProbabilityFieldCount, 1},
   {"getProbabilityField", (PyCFunction)_pyropogenerator_getProbabilityField, 1},
@@ -766,6 +790,50 @@ static PyObject* _pyropo_restore(PyObject* self, PyObject* args)
   }
 
   restore_image(sourceSweep, RaveFmiImage_getSweep(resultimage, 0), probabilitySweep, threshold);
+
+  result = (PyObject*)PyFmiImage_New(resultimage, 0);
+  RAVE_OBJECT_RELEASE(resultimage);
+  return result;
+}
+
+static PyObject* _pyropo_restore2(PyObject* self, PyObject* args)
+{
+  PyObject* sweepptr = NULL;
+  PyObject* inprobabilityptr = NULL;
+  PyFmiImage* sweep = NULL;
+  PyFmiImage* probability = NULL;
+  RaveFmiImage_t* resultimage = NULL;
+  PyObject* result = NULL;
+  FmiImage* sourceSweep = NULL; /* Do not release, internal memory */
+  FmiImage* probabilitySweep = NULL; /* Do not release, internal memory */
+  int threshold = 255;
+  int sweepnr = 0;
+
+  if (!PyArg_ParseTuple(args, "OOi|i", &sweepptr, &inprobabilityptr, &threshold, &sweepnr)) {
+    return NULL;
+  }
+
+  if (!PyFmiImage_Check(sweepptr) || !PyFmiImage_Check(inprobabilityptr)) {
+    raiseException_returnNULL(PyExc_TypeError, "restore2 takes sweep, probability field and threshold as input");
+  }
+  sweep = (PyFmiImage*)sweepptr;
+  probability = (PyFmiImage*)inprobabilityptr;
+
+  sourceSweep = RaveFmiImage_getSweep(sweep->image, sweepnr);
+  if (sourceSweep == NULL) {
+    raiseException_returnNULL(PyExc_TypeError, "Input fmi image does not contain that sweep");
+  }
+  probabilitySweep = RaveFmiImage_getSweep(probability->image, 0);
+  if (probabilitySweep == NULL) {
+    raiseException_returnNULL(PyExc_TypeError, "Probability field is empty");
+  }
+
+  resultimage = RaveFmiImage_new(1);
+  if (resultimage == NULL) {
+    return NULL;
+  }
+
+  restore_image2(sourceSweep, RaveFmiImage_getSweep(resultimage, 0), probabilitySweep, threshold);
 
   result = (PyObject*)PyFmiImage_New(resultimage, 0);
   RAVE_OBJECT_RELEASE(resultimage);

@@ -948,6 +948,41 @@ done:
   return result;
 }
 
+RaveFmiImage_t* RaveRopoGenerator_restore2(RaveRopoGenerator_t* self, int threshold)
+{
+  RaveFmiImage_t* restored = NULL;
+  RaveFmiImage_t* result = NULL;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  if (self->classification == NULL || self->markers == NULL) {
+    RaveRopoGenerator_classify(self);
+  }
+  restored = RAVE_OBJECT_CLONE(self->image);
+  if (restored == NULL) {
+    RAVE_CRITICAL0("Failed to clone image");
+    goto done;
+  }
+
+  RaveFmiImage_fill(restored, CLEAR);
+
+  if (!RaveRopoGeneratorInternal_addTask(restored, "fi.fmi.ropo.restore2") ||
+      !RaveRopoGeneratorInternal_addProbabilityTaskArgs(restored, self->probabilities, "RESTORE2_THRESH: %d",threshold)) {
+    RAVE_CRITICAL0("Failed to add task arguments");
+    goto done;
+  }
+
+  restore_image2(RaveFmiImage_getImage(self->image),
+                 RaveFmiImage_getImage(restored),
+                 RaveFmiImage_getImage(self->classification),
+                 threshold);
+
+  result = RAVE_OBJECT_COPY(restored);
+done:
+  RAVE_OBJECT_RELEASE(restored);
+  return result;
+}
+
 int RaveRopoGenerator_restoreSelf(RaveRopoGenerator_t* self, int threshold)
 {
   RaveFmiImage_t* restored = NULL;

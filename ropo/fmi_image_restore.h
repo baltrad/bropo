@@ -31,5 +31,6 @@ void mark_image(FmiImage *target,FmiImage *prob,Byte threshold,Byte marker);
 
 void restore_image(FmiImage *source,FmiImage *target,FmiImage *prob,Byte threshold);
 void restore_image_neg(FmiImage *source,FmiImage *target,FmiImage *prob,Byte threshold);
+void restore_image2(FmiImage *source,FmiImage *target,FmiImage *prob,Byte threshold);
 
 #endif

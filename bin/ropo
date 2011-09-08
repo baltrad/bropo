@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with RAVE.  If not, see <http://www.gnu.org/licenses/>.
 '''
 ## FMI's ROPO Anomaly Detection and Removal ...
-## ... as a BALTRAD tool.
+## ... as a BALTRAD binary tool.
 
 ## @file
 ## @author Daniel Michelson, SMHI
@@ -27,44 +27,69 @@ along with RAVE.  If not, see <http://www.gnu.org/licenses/>.
 import _raveio
 import _fmiimage
 import _ropogenerator
+import odim_source
 from Proj import rd
 
 
-## To do: activate parameters list. This first version uses only the default, assumes DBZH.
+## Copies the top-level 'what' attributes from one object to another.
+# Fixes /what/source in the process, if it doesn't contain the NOD identifier.
+# @param ino input PVOL or SCAN object
+# @param outo output PVOL or SCAN object
+def copy_topwhat(ino, outo):
+    outo.beamwidth = ino.beamwidth
+    outo.date = ino.date
+    outo.time = ino.time
+    outo.height = ino.height
+    outo.latitude = ino.latitude
+    outo.longitude = ino.longitude
+
+    S = odim_source.ODIM_Source(ino.source)
+    if not S.nod:
+        S.nod = odim_source.NOD[S.wmo]
+        outo.source = odim_source.SOURCE[S.nod]
+    else:
+        outo.source = ino.source
+
+
+## TODO: activate parameters list. This first version uses only the default, assumes DBZH.
+#  TODO: separation of probability fields.
+# @param scan input SCAN object
+# @param options variable-length object containing argument names and values
+# @returns scan object containing detected and removed anomalies
 def process_scan(scan, options):
-    if scan.elangle * rd < options.elev:
-        param = scan.getParameter(options.params)
+    if scan.elangle*rd < options.elev:
         image = _fmiimage.fromRave(scan, options.params)
-        raw_thresh = int((options.threshold-param.offset) / param.gain)
+        param = scan.getParameter(options.params)
+        raw_thresh = int((int(options.threshold)-param.offset) / param.gain)
         rg = _ropogenerator.new(image).threshold(raw_thresh)
     
-        if options.biomet:
-            a,b,c,d = eval(options.biomet)
-            rg.biomet(a,b,c,d)
-        if options.clutter:
-            a,b = eval(options.clutter)
-            rg.clutter(a,b)
-        if options.clutter2:
-            a,b = eval(options.clutter2)
-            rg.clutter2(a,b)
-        if options.emitter:
-            a,b,c = eval(options.emitter)
-            rg.emitter(a,b,c)
-        if options.emitter2:
-            a,b,c = eval(options.emitter2)
-            rg.emitter2(a,b,c)
-        if options.ship:
-            a,b = eval(options.ship)
-            rg.ship(a,b)
-        if options.softcut:
-            a,b,c = eval(options.softcut)
-            rg.softcut(a,b,c)
         if options.speck:
             a,b = eval(options.speck)
             rg.speck(a,b)
         if options.speckNormOld:
             a,b,c = eval(options.speckNormOld)
             rg.speckNormOld(a,b,c)
+        if options.clutter:
+            a,b = eval(options.clutter)
+            rg.clutter(a,b)
+        if options.clutter2:
+            a,b = eval(options.clutter2)
+            rg.clutter2(a,b)
+        if options.softcut:
+            a,b,c = eval(options.softcut)
+            rg.softcut(a,b,c)
+        if options.biomet:
+            a,b,c,d = eval(options.biomet)
+            rg.biomet(a,b,c,d)
+        if options.ship:
+            a,b = eval(options.ship)
+            rg.ship(a,b)
+        if options.emitter:
+            a,b,c = eval(options.emitter)
+            rg.emitter(a,b,c)
+        if options.emitter2:
+            a,b,c = eval(options.emitter2)
+            rg.emitter2(a,b,c)
         if options.sun:
             a,b,c = eval(options.sun)
             rg.sun(a,b,c)
@@ -73,7 +98,10 @@ def process_scan(scan, options):
             rg.sun2(a,b,c,d,e)
 
         classification = rg.classify().classification.toRaveField()
-        restored = rg.restore(int(options.restore_thresh)).toPolarScan()
+        if options.restore:
+            restored = rg.restore(int(options.restore_thresh)).toPolarScan()
+        elif options.restore2:
+            restored = rg.restore2(int(options.restore_thresh)).toPolarScan()
         restored.addQualityField(classification)
         
         # Copy other parameter datasets in input scan
@@ -83,25 +111,24 @@ def process_scan(scan, options):
         # Copy also 'how' attributes at top of scan, if any
         for a in scan.getAttributeNames():
             restored.addAttribute(a, scan.getAttribute(a))
-        # Do we need to copy any manadatory attributes at top of scan? 
+        # Do we need to copy any mandatory attributes at top of scan? 
         
         return restored
     else:
         return scan
 
-    
+
+## Loops through a volume and processes scans using \ref process_scan
+# @param pvol input PVOL object
+# @param options variable-length object containing argument names and values
+# @returns PVOL object containing detected and removed anomalies
 def process_pvol(pvol, options):
     import _polarvolume
 
     out = _polarvolume.new()
-    out.beamwidth = pvol.beamwidth
-    out.date = pvol.date
-    out.time = pvol.time
-    out.height = pvol.height
-    out.latitude = pvol.latitude
-    out.longitude = pvol.longitude
-    out.source = pvol.source
-    for a in pvol.getAttributeNames():  # Copy also 'how attributes at top level of volume, if any'
+    copy_topwhat(pvol, out)
+
+    for a in pvol.getAttributeNames():  # Copy also 'how' attributes at top level of volume, if any
         out.addAttribute(a, pvol.getAttribute(a))
 
     for s in range(pvol.getNumberOfScans()):
@@ -113,6 +140,7 @@ def process_pvol(pvol, options):
 
 
 if __name__ == "__main__":
+    import sys
     from optparse import OptionParser
 
     usage = "usage: %prog -i <infile> --detector=args [--detector=args] ... [oh]"
@@ -146,6 +174,14 @@ if __name__ == "__main__":
     parser.add_option("--restore-thresh", dest="restore_thresh",
                       default=154,
                       help="Threshold value when applying probability classification to remove anomalies, e.g. 154.")
+
+    parser.add_option("--restore", dest="restore",  
+                      default=False,
+                      help="Uses the anomaly probability field to delete anomalies without filling holes. Defaults to False.")  
+
+    parser.add_option("--restore-fill", dest="restore2",  
+                      default=True,
+                      help="Uses the anomaly probability field to delete anomalies AND fill in holes. Defaults to True.")  
 
     parser.add_option("--biomet", dest="biomet",
                       help="<dbz_max> <dbz_delta> <alt_max in meters> <alt_delta in km> Remove insect band e.g. -10,5,5000,1")
@@ -186,11 +222,16 @@ if __name__ == "__main__":
         
         rio = _raveio.open(options.infile)
 
+        if rio.objectType not in (_raveio.Rave_ObjectType_PVOL, _raveio.Rave_ObjectType_SCAN):
+            print "Input file must be either polar scan or volume. Exiting ..."
+            sys.exit(1)
+
         if rio.objectType == _raveio.Rave_ObjectType_PVOL:
             ret = process_pvol(rio.object, options)
 
         elif rio.objectType == _raveio.Rave_ObjectType_SCAN:
             ret = process_scan(rio.object, options)
+            copy_topwhat(rio.object, ret)
             
         output = _raveio.new()
         output.object = ret

@@ -81,4 +81,5 @@ void restore_image2(FmiImage *source,FmiImage *target,FmiImage *prob,Byte thresh
   for (i=0;i<prob->volume;i++)
     if (prob->array[i]>=threshold)
       target->array[i]=median.array[i];
+  reset_image(&median);
 }

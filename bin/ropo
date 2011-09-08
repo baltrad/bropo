@@ -85,8 +85,8 @@ def process_scan(scan, options):
             a,b = eval(options.ship)
             rg.ship(a,b)
         if options.emitter:
-            a,b,c = eval(options.emitter)
-            rg.emitter(a,b,c)
+            a,b = eval(options.emitter)
+            rg.emitter(a,b)
         if options.emitter2:
             a,b,c = eval(options.emitter2)
             rg.emitter2(a,b,c)

@@ -364,6 +364,8 @@ void detect_horz_segments(FmiImage *source,FmiImage *trace,int max_width,int min
   /*  multiply_image255_sigmoid(&vert,&horz,trace); */
   multiply_image255_sigmoid(trace,&horz,trace);
 
+  reset_image(&horz);
+  reset_image(&vert);
   if (FMI_DEBUG(5)) write_image("debug_horz_segments",trace,PGM_RAW);
   /*reset(&horz); */
   /*reset(&vert); */
@@ -463,6 +465,11 @@ void detect_emitters2(FmiImage *source,FmiImage *trace,int min_intensity,int min
   /*enhance_horz255(trace,row_nonzero); */
   multiply_image255_flex(trace,&mask,trace);
   semisigmoid_image(trace,32);  /* 16 */
+
+  reset_image(&temp);
+  reset_image(&candidate);
+//  reset_image(&mask);
+//  reset_image(&mask2);
 
   if (FMI_DEBUG(4)) write_image("debug_emitter2",trace,PGM_RAW);
   /*reset_image(&temp); */

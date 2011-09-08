@@ -32,6 +32,8 @@ import xml.etree.ElementTree as ET
 from rave_defines import RAVECONFIG
 import odim_source
 from Proj import rd
+from rave_defines import UTF8
+import copy
 
 
 ## Contains site-specific argument settings 
@@ -108,11 +110,11 @@ def get_options(inobj):
     S = odim_source.ODIM_Source(inobj.source)
     if not S.nod:
         S.nod = odim_source.NOD[S.wmo]
-        inobj.source = odim_source.SOURCE[S.nod]
+        inobj.source = odim_source.SOURCE[S.nod].encode(UTF8)
     try:
-        return ARGS[S.nod]
+        return copy.deepcopy(ARGS[S.nod])
     except KeyError:
-        return ARGS["default"]
+        return copy.deepcopy(ARGS["default"])
 
 
 ## Copies the top-level 'what' attributes from one object to another.
@@ -191,7 +193,7 @@ def process_pvol(pvol, options):
     # Get month and use it to determine dBZ threshold, recalling that
     # options.threshold contains the name of the look-up. This is 
     # over-written with the looked-up threshold itself. 
-    month = int(out.date[4:6])-1
+    month = int(pvol.date[4:6])-1
     options.threshold = THRESHOLDS[options.threshold][month]
 
     for a in pvol.getAttributeNames():  # Copy also 'how' attributes at top level of volume, if any

@@ -468,8 +468,8 @@ void detect_emitters2(FmiImage *source,FmiImage *trace,int min_intensity,int min
 
   reset_image(&temp);
   reset_image(&candidate);
-//  reset_image(&mask);
-//  reset_image(&mask2);
+  free(mask.array);
+  free(mask2.array);
 
   if (FMI_DEBUG(4)) write_image("debug_emitter2",trace,PGM_RAW);
   /*reset_image(&temp); */
@@ -635,7 +635,9 @@ void detect_sun2(FmiImage *source,FmiImage *trace,int min_intensity,int max_widt
   if (FMI_DEBUG(5)) write_image("debug_sun3",&mask,PGM_RAW);
   /*  fmi_debug(5,"debug_sun_4"); */
   multiply_image255_flex(trace,&mask,trace);
- 
+
+  free(mask.array);
+
  if (FMI_DEBUG(4)) write_image("debug_sun",trace,PGM_RAW); 
  /* fmi_debug(2,"sun2"); */
 }

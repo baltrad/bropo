@@ -46,9 +46,10 @@ CONFIG_FILE = os.path.join(RAVECONFIG, 'ropo_options.xml')
 ## Dictionary containing static reflectivity thresholds, one for each month of the year.
 # To be used when initially thresholding reflectivity data.
 # Add and use entries as you please.
-THRESHOLDS = {"COLD"      : ( -6,  -4, -2,  0,  2,  4,  6,  4,  2,  0,  -2,  -4),
-              "VERY_COLD" : (-12, -10, -6, -4,  0,  4,  6,  4, -4, -8, -10, -12),
-              "TEMPERATE" : (  0,   2,  4,  6,  8, 10, 10,  8,  6,  4,   2,   0)
+THRESHOLDS = {"COLD"      : ( -6,  -4,  -2,   0,   2,   4,   6,   4,   2,   0,  -2,  -4),
+              "VERY_COLD" : (-12, -10,  -6,  -4,   0,   4,   6,   4,  -4,  -8, -10, -12),
+              "TEMPERATE" : (  0,   2,   4,   6,   8,  10,  10,   8,   6,   4,   2,   0),
+              "FLAT-30"   : (-30, -30, -30, -30, -30, -30, -30, -30, -30, -30, -30, -30)
               }
 THRESHOLDS["DEFAULT"] = THRESHOLDS["COLD"]
 

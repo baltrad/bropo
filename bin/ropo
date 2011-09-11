@@ -193,7 +193,7 @@ if __name__ == "__main__":
                       help="<MIN_DBZ> <max_smooth> Remove specks under smoothness, e.g. -5,60")
 
     parser.add_option("--emitter", dest="emitter",
-                      help="<MIN_DBZ> <min_length in bins> <max_width in degrees> Filter emitter lines, e.g. -20,8,2")
+                      help="<MIN_DBZ> <LENGTH> Filter unity-width emitter lines, e.g. 10,4")
 
     parser.add_option("--emitter2", dest="emitter2",
                       help="<MIN_DBZ> <LENGTH in bins> <width in degrees> Filter emitter lines\ne.g. -10,3,3.")

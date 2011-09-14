@@ -1,67 +1,80 @@
-Install instructions for bRopo (Baltrad ROPO)
+Install instructions for bRopo (BALTRAD ROPO)
 
 Anders Henja
 Swedish Meteorological and Hydrological Institute
 
 INTRODUCTION
 bRopo is the FMI processing software ROPO that has been adapted
-to coexist with the RAVE processing framework.
+to coexist with the RAVE processing framework (BALTRAD toolbox).
 
 REQUIREMENTS
 
 Before installing bRopo a number of modules/software packages have to be
-installed (and their dependencies). But in short, if you have got the
+installed (along with their dependencies). But in short, if you have the
 following packages installed you should be good to go.
 - a (Gnu) C++ compiler
 - GNU make
 - Python 2.6 final or 2.7.x, but not 3.x
-- Rave (at least build hudson-Rave-172-SUCCESS)
+- RAVE (at least build hudson-Rave-172-SUCCESS)
 - libpng12.so PNG image files
 
 PREPARATION
-Rave has it's own installation instructions so follow them in order to get the
-rave package in place.
+RAVE has it's own installation instructions so follow them in order to get the
+RAVE package in place.
 
-PNG12 can usually be installed as a package, in some debian based linuces it can be
-installed with
+PNG12 can usually be installed as a package, in some Debian-based Linuces it 
+can be installed with
 %> sudo apt-get install libpng12-0
+Otherwise, try your RPM manager, e.g. yum or yumex.
 
 BUILDING
 The building is performed with the traditional ./configure; make; make install.
 
-The simplest way to configure bRack is to ensure that you have access to rave
-through python and then let ./configure atempt to identify the rave software.
-I.e. if you can do the following you might be lucky:
+The simplest way to configure bRopo is to ensure that you have access to RAVE
+through Python and then let ./configure attempt to identify the RAVE software.
+If the following succeeds, then you should have no problem.
 %> python -c "import _rave;print _rave.__file__"
 /opt/baltrad/rave/Lib/_rave.so
 
-If not, you probably need to use the configure argument for rave together with
-png.
+If not, you probably need to use the configure arguments for RAVE together with
+PNG, as follows.
 
 CONFIGURE ARGUMENTS
---prefix=ROOT                 This is the root directory of the brack installation. [default /opt/baltrad/brack]
+--prefix=ROOT                 This is the root directory of the bropo 
+                              installation. [default /opt/baltrad/bropo]
 
---with-rave=ROOT              Points out the rave root directory (default 'yes')
+--with-rave=ROOT              Points out the RAVE root directory (default 'yes')
   
---with-png=ROOT or INC,LIB    Points out the png root installation or include, library paths (default 'yes')
+--with-png=ROOT or INC,LIB    Points out the PNG root installation or include, 
+                              library paths (default 'yes')
 
 Example usage:
-%> ./configure --prefix=/opt/brack --with-rave=yes --with-png=/opt/png12/include,/opt/lib
-
+%> ./configure --prefix=/opt/bropo --with-rave=/opt/rave 
+--with-png=/opt/png12/include,/opt/lib
 or
+%> ./configure --prefix=/opt/bropo
 
-%> ./configure --prefix=/opt/brack
-
-MAKE
+BUILD
 Just run make
-
 %> make
+
+TEST
+bRopo comes with a set of unit tests that should probably be run to just verify 
+that your build works predictably.
+%> make test
 
 INSTALL
 Installation is performed with
-
 %> make install
+
+!!! Follow the instructions output to you by the install procedure to update 
+your PATH and LD_LIBRARY_PATH !!! 
+RAVE contains an instruction on what to do with your .pth file. The same 
+instruction allies to bRopo. In other words, if you don't have permission to 
+write your .pth file to your Python distrution's site-packages directory, then 
+follow those instructions.
 
 Hopefully you are finished now and are able to use the software.
 
-
+If you are running the RAVE toolbox XML-RPC server, you should copy the file 
+pyropo/ropo_realtime.py into your RAVE installation's Lib directory.

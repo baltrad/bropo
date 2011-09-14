@@ -1221,12 +1221,14 @@ void distance_compensation_die(FmiImage *image,int slope){
 /* first mul by 1, then by coeff at max distance  */
 void distance_compensation_mul(FmiImage *image,int coeff){
   register int i,j,k,l,m;
+  //printf("%d\n", DATA_MAX);
   for (k=0;k<image->channels;k++)
     for (i=0;i<image->width;i++){
       l=image->width+(coeff-1)*i;
       for (j=0;j<image->height;j++){
 	m=get_pixel(image,i,j,k)*l/image->width;
-	if (m>DATA_MAX) m=DATA_MAX;
+//  if (m>DATA_MAX) m=DATA_MAX; /* Undeclared, defaults to 16. Shouldn't it be 250? */
+  if (m>254) m=254;  /* What's preventing us from using the data's full range? */
 	put_pixel(image,i,j,k,m);
       }
     }

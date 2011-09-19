@@ -27,7 +27,7 @@ case $withval in
     AC_MSG_CHECKING(for RAVE installation)
     TMPDIR=
     if [[ "yes" = "$withval" ]]; then
-      TMPFIL=`python -c "import _rave; print eval(\"_rave.__\"+\"file__\")" 2>&1 | egrep -v "Objects [created|deleted|pending]"`
+      TMPFIL=`python -c "import _rave; print eval(\"_rave.__\"+\"file__\")" 2>&1 | head -1`
       if [[ -f "$TMPFIL" ]]; then
         TMPDIR=`echo "$TMPFIL" | sed -e"s/\/Lib\/_rave\.so//"`
       fi

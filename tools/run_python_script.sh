@@ -98,6 +98,7 @@ if [ "$DIRNAME" != "" ]; then
 fi
 
 if [ "$PYSCRIPT" != "" ]; then
+  #valgrind --leak-check=full --show-reachable=yes 
   python "$PYSCRIPT"
 else
   python

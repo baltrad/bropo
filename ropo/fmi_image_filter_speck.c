@@ -38,6 +38,11 @@ FmiImage *PROBE_SOURCE;
 FmiImage *PROBE_TARGET;
 FmiImage PROBE_BOOK[1]; 
 
+/**
+ * So that we keep track on if the probe book is initialized properly or not
+ */
+static int probe_book_initialized = 0;
+
 Histogram PROBE_SPECK_HISTOGRAM;
 int  (* PROBE_SPECK_HISTOGRAM_INFO)(Histogram);
 
@@ -206,14 +211,18 @@ void traverse_image(int i,int j,int min_value){
 /* CLIENT (STARTER) */
 void Binaryprobe(FmiImage *domain,FmiImage *source,FmiImage *trace,int (* histogram_function)(Histogram),unsigned char min_value){ 
   register int i,j;
-  /*  fprintf(stderr,"\tHIST=%d\n",histogram_function(h)); */
-  /* fprintf(stderr,"\tHIST=%d\n",histogram_area(h)); */
   fmi_debug(3,"filter_specks");
   if (source->channels!=1) 
     fmi_error("filter_specks: other than single-channel source");
   PROBE_DOMAIN=domain;
   PROBE_SOURCE=source;
   PROBE_TARGET=trace;
+
+  if (probe_book_initialized == 0) {
+    init_new_image(PROBE_BOOK);
+    probe_book_initialized = 1;
+  }
+
   canonize_image(source,PROBE_BOOK);
   canonize_image(source,PROBE_TARGET);
   fill_image(PROBE_BOOK,UNVISITED);
@@ -233,6 +242,8 @@ void Binaryprobe(FmiImage *domain,FmiImage *source,FmiImage *trace,int (* histog
 
   if (FMI_DEBUG(5))
     write_image("probe",PROBE_BOOK,PGM_RAW);
+
+  reset_image(PROBE_BOOK);
 }
 
 void detect_specks(FmiImage *source,FmiImage *trace,unsigned char min_value,int (* histogram_function)(Histogram)){ 

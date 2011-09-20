@@ -26,30 +26,27 @@
 
 void morph_closing(FmiImage *source,FmiImage *target,int w,int h){
   FmiImage temp;
+  init_new_image(&temp);
   canonize_image(source,&temp);
   canonize_image(source,target);
   pipeline_process(source,&temp,w,h,histogram_max);
   pipeline_process(&temp,target,w,h,histogram_min);
   if (FMI_DEBUG(4)) write_image("debug_morph_closing",target,PGM_RAW);
-  /* reset_image(&temp); */
+  reset_image(&temp);
 }
 
 void morph_opening(FmiImage *source,FmiImage *target,int w,int h){
   FmiImage temp;
+  init_new_image(&temp);
   canonize_image(source,&temp);
   canonize_image(source,target);
   pipeline_process(source,&temp,w,h,histogram_min);
   pipeline_process(&temp,target,w,h,histogram_max);
-  /* reset_image(&temp); */
+  reset_image(&temp);
 }
-
-/*void morph_opening(FmiImage *source,FmiImage *target){ */
-/*} */
-
 
 void distance_transform(FmiImage *source,FmiImage *target){
 	register int i,j,k,s,t;
-  /*  canonize_image(source,target); */
   if (source!=target)
     copy_image(source,target);
 

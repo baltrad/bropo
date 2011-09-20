@@ -51,12 +51,12 @@ static void RaveFmiImageInternal_resetImage(RaveFmiImage_t* img)
 {
   if (img->image != NULL) {
     if (img->image->heights != NULL) {
-      free(img->image->heights);
+      RAVE_FREE(img->image->heights);
     }
     if (img->image->array != NULL) {
-      free(img->image->array);
+      RAVE_FREE(img->image->array);
     }
-    free(img->image);
+    RAVE_FREE(img->image);
   }
   img->image = NULL;
 }
@@ -112,7 +112,7 @@ static int RaveFmiImage_copyconstructor(RaveCoreObject* obj, RaveCoreObject* src
   canonize_image(src->image, this->image);
   return 1;
 error:
-  RAVE_OBJECT_RELEASE(this->image);
+  RaveFmiImageInternal_resetImage(this);
   RAVE_OBJECT_RELEASE(this->attrs);
   return 0;
 }
@@ -135,14 +135,13 @@ static int RaveFmiImageInternal_scanToFmiImage(PolarScan_t* scan, const char* qu
   RAVE_ASSERT((raveimg != NULL), "image == NULL");
 
   image = RaveFmiImage_getImage(raveimg);
-
+  reset_image(image);
   image->width=PolarScan_getNbins(scan);
   image->height=PolarScan_getNrays(scan);
   image->bin_depth=PolarScan_getRscale(scan);
   image->elevation_angle=PolarScan_getElangle(scan) * 180.0 / M_PI; /* elangles in degrees for ropo */
   image->max_value=255;
   image->channels=1;
-
   initialize_image(image);
 
   if (quantity == NULL) {
@@ -193,6 +192,7 @@ static int RaveFmiImageInternal_fieldToFmiImage(RaveField_t* field, FmiImage* im
   RAVE_ASSERT((field != NULL), "field == NULL");
   RAVE_ASSERT((image != NULL), "image == NULL");
 
+  reset_image(image);
   image->width=RaveField_getXsize(field);
   image->height=RaveField_getYsize(field);
   image->channels=1;
@@ -324,6 +324,7 @@ int RaveFmiImage_initialize(RaveFmiImage_t* self, int width, int height)
       self->image = images;
       self->image->width = width;
       self->image->height = height;
+      self->image->channels = 1;
       initialize_image(self->image);
       result = 1;
     }

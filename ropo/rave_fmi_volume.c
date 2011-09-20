@@ -59,13 +59,13 @@ static void RaveFmiVolumeInternal_resetImage(RaveFmiVolume_t* img)
   if (img->image != NULL) {
     for (i = 0; i < img->sweepCount; i++) {
       if (img->image[i].heights != NULL) {
-        free(img->image[i].heights);
+        RAVE_FREE(img->image[i].heights);
       }
       if (img->image[i].array != NULL) {
-        free(img->image[i].array);
+        RAVE_FREE(img->image[i].array);
       }
     }
-    free(img->image);
+    RAVE_FREE(img->image);
   }
   img->image = NULL;
   img->sweepCount = 0;

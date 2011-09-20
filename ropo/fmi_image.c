@@ -25,8 +25,8 @@
 #include <stdlib.h>
 #include "fmi_image.h"
 #include "fmi_util.h"
-
-
+#include "rave_alloc.h"
+#include "rave_debug.h"
 /*img->array=NULL;*/
 
 char FmiImageFormatExtension[7][4]={
@@ -58,31 +58,49 @@ new_image(int sweep_count)
   FmiImage * result=NULL;
   int i=0;
 
-  result = (FmiImage *)malloc(sizeof(FmiImage) * sweep_count);
-  for(i=0; i<sweep_count; i++)
-    {
-      result[i].heights=NULL;
-      result[i].array=NULL;
-      result[i].elevation_angle=0.0;
-      result[i].channels=0;
-      result[i].bin_depth=0.0;
-      result[i].type=NULL_IMAGE;
-    }
+  result = (FmiImage *)RAVE_MALLOC(sizeof(FmiImage) * sweep_count);
+  for(i=0; i<sweep_count; i++) {
+    result[i].heights=NULL;
+    result[i].array=NULL;
+    result[i].elevation_angle=0.0;
+    result[i].channels=0;
+    result[i].bin_depth=0.0;
+    result[i].type=NULL_IMAGE;
+  }
   reset_image(result);
   return result;
 }
 
+/*
+int max_value;
+
+*/
+
+void init_new_image(FmiImage* img) {
+  img->type = NULL_IMAGE;
+  img->format = UNDEFINED;
+  img->sweep_count = 0;
+  img->heights = NULL;
+  img->array = NULL;
+  img->elevation_angle = 0.0;
+  img->channels = 0;
+  img->bin_depth = 0;
+  img->max_value = 0;
+  img->width = 0;
+  img->height = 0;
+  img->volume = 0;
+  img->area = 0;
+  img->coord_overflow_handler_x = ZERO;
+  img->coord_overflow_handler_y = ZERO;
+  img->comment_string[0] = '\0';
+}
+
 int initialize_image(FmiImage *img){
   img->type=TRUE_IMAGE;
-  /*  img->format=UNDEFINED; */
   img->area=img->width*img->height;
   img->volume=img->area*img->channels;
-  
-  fmi_debug(2,"initialize_image");
-  if (FMI_DEBUG(3)) image_info(img);
-  img->array=(Byte *) malloc(img->volume);
-  /*  img->channel_mapping=(int *) malloc(img->channels); */
-  /*  img->coord_overflow_handler=WRAP; */
+  RAVE_ASSERT((img->array == NULL), "image->array != NULL");
+  img->array=(Byte *) RAVE_MALLOC(img->volume);
   img->coord_overflow_handler_x=BORDER;
   img->coord_overflow_handler_y=BORDER;
   img->max_value=255;
@@ -177,7 +195,7 @@ void concatenate_images_vert(FmiImage *source,int count,FmiImage *target){
   fmi_debug(3,"concat base");
   copy_image_properties(source,target);
   target->sweep_count = count;
-  target->heights = (int *)malloc(sizeof(int) * count);
+  target->heights = (int *)RAVE_MALLOC(sizeof(int) * count);
   if (FMI_DEBUG(3)) image_info(target);
   /* ADD THE REST */
   for (k=1;k<count;k++){
@@ -226,7 +244,7 @@ int copy_image_properties(FmiImage *sample,FmiImage *target){
     target->heights   = NULL;
   else
     {
-      target->heights = (int*)malloc(sample->sweep_count * sizeof(int));
+      target->heights = (int*)RAVE_MALLOC(sample->sweep_count * sizeof(int));
       memcpy(target->heights, sample->heights, sample->sweep_count * sizeof(int));
     }
 
@@ -275,7 +293,6 @@ int canonize_image(FmiImage *sample,FmiImage *target){
 		copy_image_properties(sample,target);
 		initialize_image(target);
 	}
-	/*target->type=TRUE_IMAGE; // VIOLATING SOMETHING? */
 	fmi_debug(2,"canonize_image END");
 	return 1;
 }
@@ -283,7 +300,7 @@ int canonize_image(FmiImage *sample,FmiImage *target){
 void reset_image(FmiImage *image){
   switch (image->type){
   case TRUE_IMAGE:
-    free (image->array);
+    RAVE_FREE (image->array);
   case NULL_IMAGE:
   case LINK_IMAGE:
     image->width=0;
@@ -293,19 +310,15 @@ void reset_image(FmiImage *image){
     image->sweep_count=0;
     image->bin_depth=0.0;
     image->elevation_angle=0.0;
-    if(image->heights != NULL)
-      free(image->heights);
-    image->heights=NULL;
-    image->array=NULL;
+    RAVE_FREE (image->array);
+    RAVE_FREE(image->heights);
     image->type=NULL_IMAGE;
     return;
   default:
     fprintf(stderr," IMAGE TYPE:%d\n",image->type);
     fmi_error("reset_image: unknown image type");
   }
-  /*  free (image->channel_mapping); */
 }
-
 
 int legal_coords(FmiImage *img,int x,int y){
   if (x<0) return 0;
@@ -889,7 +902,7 @@ void write_image(char *filename,FmiImage *img,FmiImageFormat format){
   if (file_extension(filename)!=NULL)
     actual_filename=filename;
   else {
-    actual_filename=(char *)malloc(strlen(filename)+5);
+    actual_filename=(char *)RAVE_MALLOC(strlen(filename)+5);
     strcpy(actual_filename,filename);
     strcat(actual_filename,".");
     strncat(actual_filename,FmiImageFormatExtension[format],4);
@@ -906,7 +919,7 @@ void write_image(char *filename,FmiImage *img,FmiImageFormat format){
   }
   else
     fmi_error("Failed opening file for writing.");
-  free(actual_filename);  /* segmentation fault? UUSI! */
+  RAVE_FREE(actual_filename);  /* segmentation fault? UUSI! */
 }
 
 void dump_comments(FILE *fp,char *comment,char *begin_code,char *end_code,int line_length){

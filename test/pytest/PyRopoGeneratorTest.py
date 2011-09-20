@@ -230,8 +230,6 @@ class PyRopoGeneratorTest(unittest.TestCase):
     self.assertTrue(string.find(c.getAttribute("how/task_args"), "EMITTER:") == -1)
     self.assertTrue(string.find(d.getAttribute("how/task_args"), "EMITTER:") >= 0)
     self.assertTrue(string.find(d.getAttribute("how/task_args"), "SPECK:") == -1)
-    
-    
 
   # Simple way to ensure that a file is exported properly
   #

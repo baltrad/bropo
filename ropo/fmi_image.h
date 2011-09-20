@@ -161,6 +161,7 @@ int legal_coords(FmiImage *img,int x,int y);
 /* BASIC OPERATIONS OFR SETTING AND RESETTING IMAGES */
 /*int set(FmiImage *img,int width,int height,int channels);*/
 FmiImage *new_image(int sweep_count); /* Allocator */
+void init_new_image(FmiImage* img);
 int initialize_image(FmiImage *img); /* constructor */
 
 void reset_image(FmiImage *img);

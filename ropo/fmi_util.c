@@ -24,6 +24,7 @@
 #include <string.h>
 #include <math.h>
 #include "fmi_util.h"
+#include "rave_alloc.h"
 
 char *fmi_util_comment=NULL;
 
@@ -133,7 +134,7 @@ char *file_path(char *filename){
   end++;
   c=*end;
   *end='\0';                             /* cut! (kludge) */
-  path=(char *)malloc(strlen(filename)+1);
+  path=(char *)RAVE_MALLOC(strlen(filename)+1);
   strcpy(path,filename);
   *end=c;                           /* fix! (kludge) */
   return path;
@@ -150,7 +151,7 @@ char *file_basename(char *filename){
   if (end!=NULL){
     c=*end;
     *end='\0';}                             /* cut! (kludge) */
-  basename=(char *)malloc(strlen(start)+1);
+  basename=(char *)RAVE_MALLOC(strlen(start)+1);
   strcpy(basename,start);
   if (end!=NULL){
     *end=c;}

@@ -33,6 +33,7 @@
 #include "fmi_image_filter_speck.h"
 #include "fmi_meteosat.h"
 #include "fmi_radar_image.h"
+#include "rave_alloc.h"
 
 
 float fmi_radar_sweep_angles[FMI_RADAR_SWEEP_COUNT]={0.5, 1.5, 2.5, 3.5, 4.5, 6.0, 8.0, 11.0, 20.0, 45.0};
@@ -175,7 +176,7 @@ void volume_to_cappi(FmiImage *volume,int height,FmiImage *cappi){
   int h,h_upper,h_lower;
   int mix;
 
-  bin = (int *)malloc(sizeof(int) * volume->sweep_count);
+  bin = (int *)RAVE_MALLOC(sizeof(int) * volume->sweep_count);
 
   /* assumption: max area = area of lowest ppi */
   /*
@@ -249,7 +250,7 @@ void volume_to_cappi(FmiImage *volume,int height,FmiImage *cappi){
 
   }
   split_to_channels(volume,channels);
-  free(bin);
+  RAVE_FREE(bin);
 }
 
 void dump_sweep_info(){
@@ -290,7 +291,7 @@ void enhance_horz(FmiImage *trace){
  register int i,j,k;
  int m,c;
  int *n;
- n=(int*)malloc(trace->height*sizeof(int));
+ n=(int*)RAVE_MALLOC(trace->height*sizeof(int));
  /* int m[trace->height]; */
  for (k=0;k<trace->channels;k++){
    for (j=0;j<trace->height;j++){
@@ -312,7 +313,7 @@ void enhance_horz(FmiImage *trace){
        put_pixel(trace,i,j,k,c);}
    }
  } 
- free(n);
+ RAVE_FREE(n);
 }
 
 void enhance_horz255(FmiImage *trace,Byte row_statistic[]){
@@ -405,6 +406,10 @@ void detect_emitters2(FmiImage *source,FmiImage *trace,int min_intensity,int min
   FmiImage mask,mask2;
   /*  FILE *fp; // debug */
   FmiImage temp;
+  init_new_image(&candidate);
+  init_new_image(&mask);
+  init_new_image(&mask2);
+  init_new_image(&temp);
 
   canonize_image(source,&temp);
   canonize_image(source,trace);
@@ -466,14 +471,12 @@ void detect_emitters2(FmiImage *source,FmiImage *trace,int min_intensity,int min
   multiply_image255_flex(trace,&mask,trace);
   semisigmoid_image(trace,32);  /* 16 */
 
-  reset_image(&temp);
   reset_image(&candidate);
-  free(mask.array);
-  free(mask2.array);
+  reset_image(&mask);
+  reset_image(&mask2);
+  reset_image(&temp);
 
   if (FMI_DEBUG(4)) write_image("debug_emitter2",trace,PGM_RAW);
-  /*reset_image(&temp); */
-  /*reset_image(&candidate); */
 }
 
 
@@ -482,12 +485,12 @@ void detect_emitters2(FmiImage *source,FmiImage *trace,int min_intensity,int min
 void smooth_signal(Byte signal[],int length){
   register int i;
   Byte *signal2;
-  signal2=(Byte*)malloc(sizeof(Byte)*length);
+  signal2=(Byte*)RAVE_MALLOC(sizeof(Byte)*length);
   for (i=0;i<length;i++)
     signal2[i]=(signal[(i-1)%length] + 2*signal[i] +signal[(i+1)%length])/4;
   for (i=0;i<length;i++)
     signal[i]=MAX(signal[i],signal2[i]);
-  free(signal2);
+  RAVE_FREE(signal2);
 }
 
 void detect_emitters2old(FmiImage *source,FmiImage *trace,int min_intensity,int min_length,int max_width){
@@ -500,9 +503,9 @@ void detect_emitters2old(FmiImage *source,FmiImage *trace,int min_intensity,int 
   FILE *fp; /* debug */
   FmiImage temp;
 
-  row_nonzero=(Byte*)malloc(sizeof(Byte)*source->height);
-  row_avg=(Byte*)malloc(sizeof(Byte)*source->height);
-  row_pow=(Byte*)malloc(sizeof(Byte)*source->height);
+  row_nonzero=(Byte*)RAVE_MALLOC(sizeof(Byte)*source->height);
+  row_avg=(Byte*)RAVE_MALLOC(sizeof(Byte)*source->height);
+  row_pow=(Byte*)RAVE_MALLOC(sizeof(Byte)*source->height);
 
   canonize_image(source,&temp);
   canonize_image(source,trace);
@@ -567,9 +570,9 @@ void detect_emitters2old(FmiImage *source,FmiImage *trace,int min_intensity,int 
   /*reset_image(&temp); */
   /*reset_image(&candidate); */
   
-  free(row_pow);
-  free(row_avg);
-  free(row_nonzero);
+  RAVE_FREE(row_pow);
+  RAVE_FREE(row_avg);
+  RAVE_FREE(row_nonzero);
 }
 
 /*----------------- */
@@ -612,6 +615,8 @@ void detect_sun2(FmiImage *source,FmiImage *trace,int min_intensity,int max_widt
 
   fmi_debug(2,"sun2");
 
+  init_new_image(&mask);
+
   canonize_image(source,trace);
 
   if ((elevation<-2)||(elevation>20)){
@@ -636,7 +641,7 @@ void detect_sun2(FmiImage *source,FmiImage *trace,int min_intensity,int max_widt
   /*  fmi_debug(5,"debug_sun_4"); */
   multiply_image255_flex(trace,&mask,trace);
 
-  free(mask.array);
+  RAVE_FREE(mask.array);
 
  if (FMI_DEBUG(4)) write_image("debug_sun",trace,PGM_RAW); 
  /* fmi_debug(2,"sun2"); */
@@ -667,6 +672,12 @@ void detect_ships(FmiImage *source,FmiImage *prob,int min_intensity,int max_area
   FmiImage lines;
 
   max_radius=sqrt(max_area)/2;
+
+  init_new_image(&temp1);
+  init_new_image(&temp2);
+  init_new_image(&specks);
+  init_new_image(&virtual);
+  init_new_image(&lines);
 
   canonize_image(source,&temp1);
   fmi_debug(2,"--------------");
@@ -799,8 +810,8 @@ void detect_ground_echo_minnetgrad(FmiImage *source,int ppi_count,FmiImage *prob
   float *altitude;
   int *bin;
   
-  altitude = (float *)malloc(source->width * sizeof(float));
-  bin = (int *)malloc(source->width * sizeof(int));
+  altitude = (float *)RAVE_MALLOC(source->width * sizeof(float));
+  bin = (int *)RAVE_MALLOC(source->width * sizeof(int));
 
   
 
@@ -890,8 +901,8 @@ void detect_ground_echo_minnetgrad(FmiImage *source,int ppi_count,FmiImage *prob
     write_image("debug_ground_2grad",&debug_grad,PGM_RAW);
     write_image("debug_ground_3grad",prob,PGM_RAW);
   }
-  free(bin);
-  free(altitude);
+  RAVE_FREE(bin);
+  RAVE_FREE(altitude);
 }
 
 void detect_ground_echo_mingrad(FmiImage *source,int ppi_count,FmiImage *prob,int intensity_grad,int half_altitude){
@@ -908,8 +919,8 @@ void detect_ground_echo_mingrad(FmiImage *source,int ppi_count,FmiImage *prob,in
   float *altitude;
   int *bin;
   
-  altitude = (float *)malloc(source->width * sizeof(float));
-  bin = (int *)malloc(source->width * sizeof(int));
+  altitude = (float *)RAVE_MALLOC(source->width * sizeof(float));
+  bin = (int *)RAVE_MALLOC(source->width * sizeof(int));
 
   setup_context(source);
 
@@ -986,8 +997,8 @@ void detect_ground_echo_mingrad(FmiImage *source,int ppi_count,FmiImage *prob,in
     write_image("debug_ground_2grad",&debug_grad,PGM_RAW);
     write_image("debug_ground_3grad",prob,PGM_RAW);
   }
-  free(bin);
-  free(altitude);
+  RAVE_FREE(bin);
+  RAVE_FREE(altitude);
 }
 
 void detect_too_warm(FmiImage *source,FmiImage *prob,FmiImage *meteosat,Celsius c50,Celsius c75,int min_intensity,int min_size){

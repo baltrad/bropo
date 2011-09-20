@@ -217,43 +217,41 @@ void volume_to_cappi(FmiImage *volume,int height,FmiImage *cappi){
       fprintf(stderr,"lower(%d)=%dm [%d]\t upper(%d)=%dm [%d]\n",lower,h_lower,bin[lower],upper,h_upper,bin[upper]);
 
 
-    if (upper==-1)
+    if (upper==-1) {
       /* NO UPPER SWEEP AVAILABLE */
       for (j=0;j<cappi->height;j++){
-	b=get_pixel(volume,bin[lower],j,lower);
-	b=b&~PSEUDOCAPPI_MARKER;
-	put_pixel(cappi,i,j,0,b);
+        b=get_pixel(volume,bin[lower],j,lower);
+        b=b&~PSEUDOCAPPI_MARKER;
+        put_pixel(cappi,i,j,0,b);
       }
-    else if (lower==-1)
+    } else if (lower==-1) {
       /* NO LOWER SWEEP AVAILABLE */
       for (j=0;j<cappi->height;j++){
-	b=get_pixel(volume,bin[upper],j,upper);
-	b=b&~PSEUDOCAPPI_MARKER;
-	/*	b=(i*255)/cappi->width; */
-	put_pixel(cappi,i,j,0,b);
-     }
-    else {
+        b=get_pixel(volume,bin[upper],j,upper);
+        b=b&~PSEUDOCAPPI_MARKER;
+        /*	b=(i*255)/cappi->width; */
+        put_pixel(cappi,i,j,0,b);
+      }
+    } else {
       /* OK - BETWEEN TWO SWEEPS  */
       mix=(255*(height-h_lower))/(h_upper-h_lower);
       if (mix>255) mix=255;
       if (mix<0)   mix=0;
-      for (j=0;j<cappi->height;j++){
-	b_lower=get_pixel(volume,bin[lower],j,lower);
-	b_upper=get_pixel(volume,bin[upper],j,upper);
-	b=(mix*b_upper+(255-mix)*b_lower)/255;
-	b=b | PSEUDOCAPPI_MARKER;
-	/*	b=128; */
-	put_pixel(cappi,i,j,0,b);
+      for (j=0;j<cappi->height;j++) {
+        b_lower=get_pixel(volume,bin[lower],j,lower);
+        b_upper=get_pixel(volume,bin[upper],j,upper);
+        b=(mix*b_upper+(255-mix)*b_lower)/255;
+        b=b | PSEUDOCAPPI_MARKER;
+        /*	b=128; */
+        put_pixel(cappi,i,j,0,b);
       }
     }
-
-
   }
   split_to_channels(volume,channels);
   RAVE_FREE(bin);
 }
 
-void dump_sweep_info(){
+void dump_sweep_info(void){
   int i,j;
   float beta;
   int b,alt;
@@ -288,32 +286,34 @@ void dump_sweep_info(){
 
 /* enhances invidual responses on lines with large total response */
 void enhance_horz(FmiImage *trace){
- register int i,j,k;
- int m,c;
- int *n;
- n=(int*)RAVE_MALLOC(trace->height*sizeof(int));
- /* int m[trace->height]; */
- for (k=0;k<trace->channels;k++){
-   for (j=0;j<trace->height;j++){
-      n[j]=0;
-      for (i=0;i<trace->width;i++){
-	if (get_pixel(trace,i,j,k)>0)
-	  n[j]++;
+  register int i, j, k;
+  int m, c;
+  int *n;
+  n = (int*) RAVE_MALLOC(trace->height*sizeof(int));
+  /* int m[trace->height]; */
+  for (k = 0; k < trace->channels; k++) {
+    for (j = 0; j < trace->height; j++) {
+      n[j] = 0;
+      for (i = 0; i < trace->width; i++) {
+        if (get_pixel(trace, i, j, k) > 0)
+          n[j]++;
       }
       /*n[j]=MIN(n[j],trace->width); */
       /*      n[j]=MAX(n[j],0); */
-   }
-   for (j=0;j<trace->height;j++){
-     m=(n[(j-1)%trace->height]+2*n[j]+n[(j+1)%trace->height])/4;
-     m=MAX(m,n[j]);
-     for (i=0;i<trace->width;i++){
-       /* put_pixel(trace,i,j,k,255); */
-       c=get_pixel(trace,i,j,k)*m/trace->width;
-       c=MIN(c,255);
-       put_pixel(trace,i,j,k,c);}
-   }
- } 
- RAVE_FREE(n);
+    }
+    for (j = 0; j < trace->height; j++) {
+      m = (n[(j - 1) % trace->height] + 2 * n[j] + n[(j + 1) % trace->height])
+          / 4;
+      m = MAX(m,n[j]);
+      for (i = 0; i < trace->width; i++) {
+        /* put_pixel(trace,i,j,k,255); */
+        c = get_pixel(trace, i, j, k) * m / trace->width;
+        c = MIN(c,255);
+        put_pixel(trace, i, j, k, c);
+      }
+    }
+  }
+  RAVE_FREE(n);
 }
 
 void enhance_horz255(FmiImage *trace,Byte row_statistic[]){
@@ -342,6 +342,9 @@ void detect_horz_segments(FmiImage *source,FmiImage *trace,int max_width,int min
   FmiImage horz;
   FmiImage vert;
 
+  init_new_image(&horz);
+  init_new_image(&vert);
+
   canonize_image(source,trace);
   canonize_image(source,&horz);
   canonize_image(source,&vert);
@@ -368,8 +371,6 @@ void detect_horz_segments(FmiImage *source,FmiImage *trace,int max_width,int min
   reset_image(&horz);
   reset_image(&vert);
   if (FMI_DEBUG(5)) write_image("debug_horz_segments",trace,PGM_RAW);
-  /*reset(&horz); */
-  /*reset(&vert); */
 }
 
 
@@ -414,6 +415,7 @@ void detect_emitters2(FmiImage *source,FmiImage *trace,int min_intensity,int min
   canonize_image(source,&temp);
   canonize_image(source,trace);
   canonize_image(source,&candidate);
+
   initialize_vert_stripe(&mask,source->height);
   initialize_vert_stripe(&mask2,source->height);
 
@@ -507,6 +509,9 @@ void detect_emitters2old(FmiImage *source,FmiImage *trace,int min_intensity,int 
   row_avg=(Byte*)RAVE_MALLOC(sizeof(Byte)*source->height);
   row_pow=(Byte*)RAVE_MALLOC(sizeof(Byte)*source->height);
 
+  init_new_image(&candidate);
+  init_new_image(&temp);
+
   canonize_image(source,&temp);
   canonize_image(source,trace);
   canonize_image(source,&candidate);
@@ -567,9 +572,10 @@ void detect_emitters2old(FmiImage *source,FmiImage *trace,int min_intensity,int 
   semisigmoid_image(trace,32);  /* 16 */
 
   if (FMI_DEBUG(4)) write_image("debug_emitter_trace_enh",trace,PGM_RAW);
-  /*reset_image(&temp); */
-  /*reset_image(&candidate); */
   
+  reset_image(&temp);
+  reset_image(&candidate);
+
   RAVE_FREE(row_pow);
   RAVE_FREE(row_avg);
   RAVE_FREE(row_nonzero);
@@ -619,9 +625,10 @@ void detect_sun2(FmiImage *source,FmiImage *trace,int min_intensity,int max_widt
 
   canonize_image(source,trace);
 
-  if ((elevation<-2)||(elevation>20)){
+  if ((elevation<-2)||(elevation>20)) {
     fill_image(trace,0);
-    return;}
+    return;
+  }
 
   /*  detect_sun(source,trace,min_intensity,min_length,max_width);  */
   threshold_image(source,trace,min_intensity);
@@ -646,11 +653,6 @@ void detect_sun2(FmiImage *source,FmiImage *trace,int min_intensity,int max_widt
  if (FMI_DEBUG(4)) write_image("debug_sun",trace,PGM_RAW); 
  /* fmi_debug(2,"sun2"); */
 }
-
-
-
-
-
 
 /* 
    BASIC IDEA
@@ -784,221 +786,242 @@ void detect_doppler_anomaly(FmiImage *source,FmiImage *target,int width, int hei
 
 
 /* NEW! */
-void detect_ground_echo_minnetgrad(FmiImage *source,int ppi_count,FmiImage *prob,int gradT,int altT){
-  register int i,j;
+void detect_ground_echo_minnetgrad(FmiImage *source, int ppi_count,
+  FmiImage *prob, int gradT, int altT)
+{
+  register int i, j;
   /*register int h,l; */
   register int l;
   int grad; /*,alt_delta,alt_m; */
   /*const int altMAX=altT*3; */
-  const int gradD=ABS(gradT);
-  const int image_height=source[0].height;
-  const int image_width=source[0].width;
+  const int gradD = ABS(gradT);
+  const int image_height = source[0].height;
+  const int image_width = source[0].width;
   /*  int g_max,g_max_alt,g_span_max; */
-  int g;         /* current gray level */
-  int altD;   /* altitude difference */
-  int altM;   /* altitude mean */
+  int g; /* current gray level */
+  int altD; /* altitude difference */
+  int altM; /* altitude mean */
   /*  int p,p_min; */
-  int p;  /* prob of this */
-  int p_max;  /* max prob obtained */
-  int pGRAD;  /* prob according to current grad */
-  int pALT;   /* prob according to current (grad-halfway) altitude */
-  int g_min;     /* minimum intensity obtained (before this) */
+  int p; /* prob of this */
+  int p_max; /* max prob obtained */
+  int pGRAD; /* prob according to current grad */
+  int pALT; /* prob according to current (grad-halfway) altitude */
+  int g_min; /* minimum intensity obtained (before this) */
   int pGRADmax = 0; /* for debug images */
 
-  FmiImage debug_grad_raw,debug_grad;
+  FmiImage debug_grad_raw, debug_grad;
   FmiImage median0;
   float *altitude;
   int *bin;
-  
-  altitude = (float *)RAVE_MALLOC(source->width * sizeof(float));
-  bin = (int *)RAVE_MALLOC(source->width * sizeof(int));
 
-  
+  altitude = (float *) RAVE_MALLOC(source->width * sizeof(float));
+  bin = (int *) RAVE_MALLOC(source->width * sizeof(int));
+
+  init_new_image(&debug_grad_raw);
+  init_new_image(&debug_grad);
+  init_new_image(&median0);
 
   setup_context(source);
 
-  fmi_debug(2,"detect_ground_echo");
+  fmi_debug(2, "detect_ground_echo");
 
-  canonize_image(&source[0],prob);
-  fill_image(prob,0);
+  canonize_image(&source[0], prob);
+  fill_image(prob, 0);
 
-  canonize_image(&source[0],&median0);
+  canonize_image(&source[0], &median0);
   /*  histogram_sample_count=(5*3)*3/4; */
-  histogram_sample_count=3;
-  pipeline_process(&source[0],&median0,1,1,histogram_median2);
+  histogram_sample_count = 3;
+  pipeline_process(&source[0], &median0, 1, 1, histogram_median2);
 
-  if (FMI_DEBUG(5)){
-    canonize_image(&source[0],&debug_grad_raw);
-    fill_image(&debug_grad_raw,0);
-    canonize_image(&source[0],&debug_grad);
-    fill_image(&debug_grad,0);
+  if (FMI_DEBUG(5)) {
+    canonize_image(&source[0], &debug_grad_raw);
+    fill_image(&debug_grad_raw, 0);
+    canonize_image(&source[0], &debug_grad);
+    fill_image(&debug_grad, 0);
   }
 
-  
-
   if (FMI_DEBUG(3))
-    fprintf(stderr," intensity_grad %.2d per 1000m, half_altitude %d \n",gradT,altT);
+    fprintf(stderr, " intensity_grad %.2d per 1000m, half_altitude %d \n",
+            gradT, altT);
 
   /* traverse image, one cirle at the time */
-  for (i=0;i<image_width;i++){
+  for (i = 0; i < image_width; i++) {
     /* save BIN INDICES and ALTITUDES to array */
-    for (l=0;l<ppi_count;l++){
-      bin[l]=bin_to_bin(i,source[1].elevation_angle,source[l+1].elevation_angle);
-      altitude[l]=bin_to_altitude(i,source[l+1].elevation_angle);
+    for (l = 0; l < ppi_count; l++) {
+      bin[l] = bin_to_bin(i, source[1].elevation_angle,
+                          source[l + 1].elevation_angle);
+      altitude[l] = bin_to_altitude(i, source[l + 1].elevation_angle);
     }
     /* traverse one circular sweep */
-    for (j=0;j<image_height;j++){
+    for (j = 0; j < image_height; j++) {
       /*g_max=-1000; */
       /*      g_span_max=-1000; */
       /*g_max_alt=-1000; */
       /* */
-      p_max=0;
+      p_max = 0;
       /*      g_min=get_pixel(&source[0],i,j,0); */
-      g_min=get_pixel(&median0,i,j,0);
+      g_min = get_pixel(&median0, i, j, 0);
       if (FMI_DEBUG(5))
-    	  pGRADmax=0;
-      for (l=1;l<ppi_count;l++){
-	if (g_min==0)
-	  break;
-	/* RAW INTENSITY */
-	g=get_pixel(&source[l],i,j,0);
-	if (g==NO_DATA)
-	  break;
-	altD=altitude[l]-altitude[l-1]+100; /* STABILITY TRICK */
-	altM=(altitude[l]+altitude[l-1])/2;
-	/*	if (altD==0)	  altD==100;  // WARNING? */
+        pGRADmax = 0;
+      for (l = 1; l < ppi_count; l++) {
+        if (g_min == 0)
+          break;
+        /* RAW INTENSITY */
+        g = get_pixel(&source[l], i, j, 0);
+        if (g == NO_DATA)
+          break;
+        altD = altitude[l] - altitude[l - 1] + 100; /* STABILITY TRICK */
+        altM = (altitude[l] + altitude[l - 1]) / 2;
+        /*	if (altD==0)	  altD==100;  // WARNING? */
 
-	grad = (1000*(g-g_min))/altD;
+        grad = (1000 * (g - g_min)) / altD;
 
+        pGRAD = 128 + pseudo_sigmoid(gradD, -(grad - gradT)) / 2;
 
-	pGRAD=128+pseudo_sigmoid(gradD,-(grad-gradT))/2;
+        if (FMI_DEBUG(5))
+          if (pGRAD > pGRADmax)
+            pGRADmax = pGRAD;
 
-	if (FMI_DEBUG(5))
-	  if (pGRAD>pGRADmax)
-	    pGRADmax=pGRAD;
+        /* fuzzify by altitude (255 at 0m, 128 at half-m) */
+        pALT = 128 - pseudo_sigmoid(altD, altM - altT) / 2;
 
-	/* fuzzify by altitude (255 at 0m, 128 at half-m) */
-	pALT = 128-pseudo_sigmoid(altD,altM-altT)/2;
-	
-	p=pGRAD*pALT/256;
-	if (p<24) p=0;
+        p = pGRAD * pALT / 256;
+        if (p < 24)
+          p = 0;
 
-	if (p>p_max) p_max=p;
-	if (g<g_min) g_min=g;
+        if (p > p_max)
+          p_max = p;
+        if (g < g_min)
+          g_min = g;
       }
-      if (FMI_DEBUG(5)){
-	put_pixel_max(&debug_grad_raw,i,j,0,pGRADmax);
-	put_pixel_max(&debug_grad,i,j,0,p_max);
-	/*if (p>get_pixel(prob,i,j,0))  */
-	/*  put_pixel(&debug,i,j,0,16*h+l); */
+      if (FMI_DEBUG(5)) {
+        put_pixel_max(&debug_grad_raw, i, j, 0, pGRADmax);
+        put_pixel_max(&debug_grad, i, j, 0, p_max);
+        /*if (p>get_pixel(prob,i,j,0))  */
+        /*  put_pixel(&debug,i,j,0,16*h+l); */
       }
-      
-      put_pixel_max(prob,i,j,0,p_max);
+
+      put_pixel_max(prob, i, j, 0, p_max);
     }
   }
-  if (FMI_DEBUG(5)){
-    write_image("debug_ground_1grad_raw",&debug_grad_raw,PGM_RAW);
-    write_image("debug_ground_2grad",&debug_grad,PGM_RAW);
-    write_image("debug_ground_3grad",prob,PGM_RAW);
+  if (FMI_DEBUG(5)) {
+    write_image("debug_ground_1grad_raw", &debug_grad_raw, PGM_RAW);
+    write_image("debug_ground_2grad", &debug_grad, PGM_RAW);
+    write_image("debug_ground_3grad", prob, PGM_RAW);
   }
   RAVE_FREE(bin);
   RAVE_FREE(altitude);
+  reset_image(&debug_grad_raw);
+  reset_image(&debug_grad);
+  reset_image(&median0);
 }
 
-void detect_ground_echo_mingrad(FmiImage *source,int ppi_count,FmiImage *prob,int intensity_grad,int half_altitude){
-  register int i,j;
-  register int l;  /* h */
-  int grad,alt_delta,alt_m;
-  const int max_altitude=half_altitude*3;
-  const int half_width=ABS(intensity_grad);
-  const int image_height=source[0].height;
-  const int image_width=source[0].width;
+void detect_ground_echo_mingrad(FmiImage *source, int ppi_count,
+  FmiImage *prob, int intensity_grad, int half_altitude)
+{
+  register int i, j;
+  register int l; /* h */
+  int grad, alt_delta, alt_m;
+  const int max_altitude = half_altitude * 3;
+  const int half_width = ABS(intensity_grad);
+  const int image_height = source[0].height;
+  const int image_width = source[0].width;
 
   int p; /*,p_min; */
-  FmiImage debug_grad_raw,debug_grad;
+  FmiImage debug_grad_raw, debug_grad;
   float *altitude;
   int *bin;
-  
-  altitude = (float *)RAVE_MALLOC(source->width * sizeof(float));
-  bin = (int *)RAVE_MALLOC(source->width * sizeof(int));
+
+  altitude = (float *) RAVE_MALLOC(source->width * sizeof(float));
+  bin = (int *) RAVE_MALLOC(source->width * sizeof(int));
+
+  init_new_image(&debug_grad_raw);
+  init_new_image(&debug_grad);
 
   setup_context(source);
 
-  fmi_debug(2,"detect_ground_echo");
+  fmi_debug(2, "detect_ground_echo");
 
-  canonize_image(&source[0],prob);
-  fill_image(prob,0);
+  canonize_image(&source[0], prob);
+  fill_image(prob, 0);
 
-  if (FMI_DEBUG(5)){
-    canonize_image(&source[0],&debug_grad_raw);
-    fill_image(&debug_grad_raw,255);
-    canonize_image(&source[0],&debug_grad);
-    fill_image(&debug_grad,0);
+  if (FMI_DEBUG(5)) {
+    canonize_image(&source[0], &debug_grad_raw);
+    fill_image(&debug_grad_raw, 255);
+    canonize_image(&source[0], &debug_grad);
+    fill_image(&debug_grad, 0);
   }
 
   if (FMI_DEBUG(3))
-    fprintf(stderr," intensity_grad %.2d per 1000m, half_altitude %d \n",intensity_grad,half_altitude);
+    fprintf(stderr, " intensity_grad %.2d per 1000m, half_altitude %d \n",
+            intensity_grad, half_altitude);
 
-  for (i=0;i<image_width;i++){
-    for (l=0;l<ppi_count;l++){
-      bin[l]=bin_to_bin(i,source[1].elevation_angle,source[l+1].elevation_angle);
-      altitude[l]=bin_to_altitude(i,source[l+1].elevation_angle);
+  for (i = 0; i < image_width; i++) {
+    for (l = 0; l < ppi_count; l++) {
+      bin[l] = bin_to_bin(i, source[1].elevation_angle,
+                          source[l + 1].elevation_angle);
+      altitude[l] = bin_to_altitude(i, source[l + 1].elevation_angle);
     }
-    for (j=0;j<image_height;j++){
+    for (j = 0; j < image_height; j++) {
       /*
-      grad_min=0;
-      g_max=0;
-      g_span_max=0;
-      g_max_alt=0;
-      */
-      for (l=0;l<ppi_count-1;l++){
-	
-	/* RAW INTENSITY */
-	alt_m=(altitude[l+1]+altitude[l])/2;
+       grad_min=0;
+       g_max=0;
+       g_span_max=0;
+       g_max_alt=0;
+       */
+      for (l = 0; l < ppi_count - 1; l++) {
 
-	if (alt_m>max_altitude) 
-	  break;
+        /* RAW INTENSITY */
+        alt_m = (altitude[l + 1] + altitude[l]) / 2;
 
-	alt_delta=(altitude[l+1]-altitude[l]);
-	grad=1000*(get_pixel(&source[l+1],i,j,0)-get_pixel(&source[l],i,j,0))/alt_delta;
+        if (alt_m > max_altitude)
+          break;
 
-	/*
-	if (grad>grad_max)
-	  grad_max=grad;
-	if (grad+grad_max<grad_net_min)
-	  grad_net_min=grad+grad_max;
-	*/
+        alt_delta = (altitude[l + 1] - altitude[l]);
+        grad = 1000 * (get_pixel(&source[l + 1], i, j, 0)
+            - get_pixel(&source[l], i, j, 0)) / alt_delta;
 
-	/* RAW INTENSITY GRADIENT */
-	
-	/* fuzzify by gradient (e.g. -10dbz / 1000m  => 128b) */
+        /*
+         if (grad>grad_max)
+         grad_max=grad;
+         if (grad+grad_max<grad_net_min)
+         grad_net_min=grad+grad_max;
+         */
 
-	p=128+pseudo_sigmoid(half_width,-(grad-intensity_grad));
-	if (p<0)   p=0;
-	if (p>255) p=255;
+        /* RAW INTENSITY GRADIENT */
 
-	if (FMI_DEBUG(5)){
-	    put_pixel_min(&debug_grad_raw,i,j,0,128+grad);
-	    put_pixel_max(&debug_grad,i,j,0,p);
-	    /*if (p>get_pixel(prob,i,j,0))  */
-	    /*  put_pixel(&debug,i,j,0,16*h+l); */
-	}
+        /* fuzzify by gradient (e.g. -10dbz / 1000m  => 128b) */
 
-	/* fuzzify by altitude (255 at 0m, 128 at half-m) */
-	p=(pseudo_gauss(half_altitude,alt_m))*p/256;
-	/*	  put_pixel_max(prob,i,j,0,(p+p_min)/2); */
-	put_pixel_max(prob,i,j,0,p);
+        p = 128 + pseudo_sigmoid(half_width, -(grad - intensity_grad));
+        if (p < 0)
+          p = 0;
+        if (p > 255)
+          p = 255;
+
+        if (FMI_DEBUG(5)) {
+          put_pixel_min(&debug_grad_raw, i, j, 0, 128 + grad);
+          put_pixel_max(&debug_grad, i, j, 0, p);
+          /*if (p>get_pixel(prob,i,j,0))  */
+          /*  put_pixel(&debug,i,j,0,16*h+l); */
+        }
+
+        /* fuzzify by altitude (255 at 0m, 128 at half-m) */
+        p = (pseudo_gauss(half_altitude, alt_m)) * p / 256;
+        /*	  put_pixel_max(prob,i,j,0,(p+p_min)/2); */
+        put_pixel_max(prob, i, j, 0, p);
 
       }
     }
   }
-  if (FMI_DEBUG(5)){
-    write_image("debug_ground_1grad_raw",&debug_grad_raw,PGM_RAW);
-    write_image("debug_ground_2grad",&debug_grad,PGM_RAW);
-    write_image("debug_ground_3grad",prob,PGM_RAW);
+  if (FMI_DEBUG(5)) {
+    write_image("debug_ground_1grad_raw", &debug_grad_raw, PGM_RAW);
+    write_image("debug_ground_2grad", &debug_grad, PGM_RAW);
+    write_image("debug_ground_3grad", prob, PGM_RAW);
   }
   RAVE_FREE(bin);
   RAVE_FREE(altitude);
+  reset_image(&debug_grad_raw);
+  reset_image(&debug_grad);
 }
 
 void detect_too_warm(FmiImage *source,FmiImage *prob,FmiImage *meteosat,Celsius c50,Celsius c75,int min_intensity,int min_size){
@@ -1006,6 +1029,8 @@ void detect_too_warm(FmiImage *source,FmiImage *prob,FmiImage *meteosat,Celsius 
   int b50=celsius_to_meteosatbyte(c50);
   int b75=celsius_to_meteosatbyte(c75);
   
+  init_new_image(&specks);
+
   canonize_image(source,&specks);
   detect_specks(source,&specks,min_intensity,histogram_area);
   semisigmoid_image(&specks,min_size);
@@ -1018,76 +1043,82 @@ void detect_too_warm(FmiImage *source,FmiImage *prob,FmiImage *meteosat,Celsius 
 
   multiply_image255(prob,&specks,prob);
   if (FMI_DEBUG(4)) write_image("debug_warm",prob,PGM_RAW);
+  reset_image(&specks);
 }
 
-void remove_thin_horz_lines(FmiImage *target,int min_elevation,int weight){
-  int i,j,k;
+void remove_thin_horz_lines(FmiImage *target, int min_elevation, int weight)
+{
+  int i, j, k;
   /*int gd,gmax; */
-  unsigned char g1,g2;
+  unsigned char g1, g2;
   int n;
   int min_length;
   float w;
   FmiImage trace;
 
-  min_length=10;
+  init_new_image(&trace);
 
-  weight=10;
-  fmi_debug(1,"remove_sun/emitter_lines");
-  printf("weight=%d \n",weight);
+  min_length = 10;
 
-  canonize_image(target,&trace);
+  weight = 10;
+  fmi_debug(1, "remove_sun/emitter_lines");
+  printf("weight=%d \n", weight);
 
+  canonize_image(target, &trace);
 
   /*  detect_horz_segments(target,&trace,min_length,min_elevation); */
   /* fmi_image_filter_line.h : */
-  detect_horz_line_segments(target,&trace,min_length,min_elevation); 
+  detect_horz_line_segments(target, &trace, min_length, min_elevation);
 
   /*printf("n=%d w=%f weight=%d \n",n,w,weight); */
-  printf("weight=%d \n",weight);
+  printf("weight=%d \n", weight);
 
   /*  fmi_error("remove_emitter_lines?"); */
 
   /*  fill_image(trace,0); */
-  for (k=0;k<target->channels;k++){
-    for (j=0;j<target->height;j++){
-
-      
-      n=0;
+  for (k = 0; k < target->channels; k++) {
+    for (j = 0; j < target->height; j++) {
+      n = 0;
       /* cumulate horz segments */
-      for (i=0;i<trace.width;i++){
-	if (get_pixel(&trace,i,j,k)>0) 
-	  n++;}
-      
+      for (i = 0; i < trace.width; i++) {
+        if (get_pixel(&trace, i, j, k) > 0)
+          n++;
+      }
+
       /*      w=weight*((float)n)/(float)trace.width;*/
-      w=weight*n/trace.width;
+      w = weight * n / trace.width;
 
       /*      if (w>1.0) w=1.0; */
       /*      printf("n=%d w=%f weight=%f \n",n,w,weight); */
-      
+
       /* IR filtering (strengthen lines) */
-      for (i=1;i<trace.width;i++){
-	g1=get_pixel(&trace,i,j,k);
-	g2=w*(float)get_pixel(&trace,i-1,j,k);
-	put_pixel(&trace,i,j,k,MAX(g1,g2));}
-      for (i=trace.width-2;i>0;i--){
-	g1=get_pixel(&trace,i,j,k);
-	g2=w*(float)get_pixel(&trace,i+1,j,k);
-	put_pixel(&trace,i,j,k,MAX(g1,g2));}
-	
+      for (i = 1; i < trace.width; i++) {
+        g1 = get_pixel(&trace, i, j, k);
+        g2 = w * (float) get_pixel(&trace, i - 1, j, k);
+        put_pixel(&trace, i, j, k, MAX(g1,g2));
+      }
+      for (i = trace.width - 2; i > 0; i--) {
+        g1 = get_pixel(&trace, i, j, k);
+        g2 = w * (float) get_pixel(&trace, i + 1, j, k);
+        put_pixel(&trace, i, j, k, MAX(g1,g2));
+      }
+
       /* DELETE / COVER */
-      for (i=0;i<trace.width;i++){
-	if (get_pixel(&trace,i,j,k)>2){    /* > CRITICAL_LENGTH */
-	  g1=get_pixel(target,i,j-1,k);
-	  g2=get_pixel(target,i,j+1,k);
-	  /*	  put_pixel(target,i,j,k,(g1+g2)/2);} */
-	  put_pixel(target,i,j,k,SUN);}
-	  /*	  put_pixel(target,i,j,k,MIN(g1,g2));} */
-	/*put_pixel(target,i,j,k,255);} */
+      for (i = 0; i < trace.width; i++) {
+        if (get_pixel(&trace, i, j, k) > 2) { /* > CRITICAL_LENGTH */
+          g1 = get_pixel(target, i, j - 1, k);
+          g2 = get_pixel(target, i, j + 1, k);
+          /*	  put_pixel(target,i,j,k,(g1+g2)/2);} */
+          put_pixel(target, i, j, k, SUN);
+        }
+        /*	  put_pixel(target,i,j,k,MIN(g1,g2));} */
+        /*put_pixel(target,i,j,k,255);} */
       }
 
     }
   }
-  write_image("lines",&trace,PGM_RAW);
+  write_image("lines", &trace, PGM_RAW);
+  reset_image(&trace);
 }
 
 
@@ -1100,6 +1131,8 @@ void enhance_horz_lines2(FmiImage *trace,int weight){
   Histogram hist; /*,weights; */
   FmiImage trace2;
   fmi_debug(3,"enhance_horz_lines2");
+
+  init_new_image(&trace2);
 
   /*  for (i=0;i<256;i++) histogram_weighted_mean2_weights[i]=i+1; */
   for (i=0;i<256;i++) histogram_weights[i]=i+1;
@@ -1134,53 +1167,60 @@ void enhance_horz_lines2(FmiImage *trace,int weight){
     }
   }
   copy_image(&trace2,trace);
+  reset_image(&trace2);
 }
 
 /* enhance by */
 /* height: hrad */
-void enhance_vert_lines(FmiImage *trace,int weight){
-  int i,j,k;
+void enhance_vert_lines(FmiImage *trace, int weight)
+{
+  int i, j, k;
   int hrad;
   int vrad;
-  int n,count;
+  int n, count;
   /* int n1[trace->height],n2[trace->height]; */
   Histogram hist; /*,weights; */
   FmiImage trace2;
-  fmi_debug(3,"enhance_horz_lines2");
+  fmi_debug(3, "enhance_horz_lines2");
+
+  init_new_image(&trace2);
 
   /*  for (i=0;i<256;i++) histogram_weighted_mean2_weights[i]=i+1; */
-  for (i=0;i<256;i++) histogram_weights[i]=i+1;
+  for (i = 0; i < 256; i++)
+    histogram_weights[i] = i + 1;
 
-  canonize_image(trace,&trace2);
+  canonize_image(trace, &trace2);
   /*  copy_image(trace,&trace2); */
-  pipeline_process(trace,&trace2,4,1,histogram_max);
-  pipeline_process(&trace2,trace,4,0,histogram_mean);
+  pipeline_process(trace, &trace2, 4, 1, histogram_max);
+  pipeline_process(&trace2, trace, 4, 0, histogram_mean);
   /*  threshold_image(trace,trace,8,0,histogram_max); */
   /*  histogram_median2_count=(2*hrad+1)*(2*vrad+1)*7/8; */
 
-  for (k=0;k<trace->channels;k++){
-    for (i=0;i<trace->width;i++){ 
-      n=0;
-      for (j=0;j<trace->height;j++) n+=(get_pixel(trace,i,j,k)>0?1:0);
+  for (k = 0; k < trace->channels; k++) {
+    for (i = 0; i < trace->width; i++) {
+      n = 0;
+      for (j = 0; j < trace->height; j++)
+        n += (get_pixel(trace, i, j, k) > 0 ? 1 : 0);
       /*vrad=   weight * n/trace->width; */
       /*hrad= 4*weight * n/trace->width; */
       /*    count=weight*weight*(2*hrad+1)*(2*vrad+1)*n/trace->width; */
-      vrad=4;
-      hrad=1;
-      count=(2*hrad+1)*(2*vrad+1) * weight * n/trace->width;
-      histogram_sample_count=count;
+      vrad = 4;
+      hrad = 1;
+      count = (2 * hrad + 1) * (2 * vrad + 1) * weight * n / trace->width;
+      histogram_sample_count = count;
       /* RISK 2010 */
-      initialize_histogram(trace,hist,hrad,vrad,0,j,NULL);
-      for(j=0;j<trace->height;up(trace,hist,hrad,vrad,&i,&j))
-	/*	put_pixel(&trace2,i,j,k,histogram_median(hist,count)); */
-      	/*put_pixel(&trace2,i,j,k,histogram_weighted_mean2(hist)); */
-	/*	put_pixel(&trace2,i,j,k,histogram_cumul_bottom(hist,count)); */
-	put_pixel(&trace2,i,j,k,histogram_median2(hist));
+      initialize_histogram(trace, hist, hrad, vrad, 0, j, NULL);
+      for (j = 0; j < trace->height; up(trace, hist, hrad, vrad, &i, &j))
+        /*	put_pixel(&trace2,i,j,k,histogram_median(hist,count)); */
+        /*put_pixel(&trace2,i,j,k,histogram_weighted_mean2(hist)); */
+        /*	put_pixel(&trace2,i,j,k,histogram_cumul_bottom(hist,count)); */
+        put_pixel(&trace2, i, j, k, histogram_median2(hist));
     }
   }
   /*  invert_image(&trace2); */
   /*  pipeline_process(&trace2,trace,0,1,histogram_max); */
-  copy_image(&trace2,trace);
+  copy_image(&trace2, trace);
+  reset_image(&trace2);
 }
 
 /* */
@@ -1192,6 +1232,8 @@ void hide_segments(FmiImage *target,FmiImage *trace){
   /*register int i,j,k; */
   /*int n,count; */
   FmiImage trace2; /*,glue; */
+
+  init_new_image(&trace2);
   /*  canonize_image(target,&glue); */
 
   /*
@@ -1230,35 +1272,40 @@ void distance_compensation_die(FmiImage *image,int slope){
 }
 
 /* first mul by 1, then by coeff at max distance  */
-void distance_compensation_mul(FmiImage *image,int coeff){
-  register int i,j,k,l,m;
+void distance_compensation_mul(FmiImage *image, int coeff)
+{
+  register int i, j, k, l, m;
   //printf("%d\n", DATA_MAX);
-  for (k=0;k<image->channels;k++)
-    for (i=0;i<image->width;i++){
-      l=image->width+(coeff-1)*i;
-      for (j=0;j<image->height;j++){
-	m=get_pixel(image,i,j,k)*l/image->width;
-//  if (m>DATA_MAX) m=DATA_MAX; /* Undeclared, defaults to 16. Shouldn't it be 250? */
-  if (m>254) m=254;  /* What's preventing us from using the data's full range? */
-	put_pixel(image,i,j,k,m);
+  for (k = 0; k < image->channels; k++) {
+    for (i = 0; i < image->width; i++) {
+      l = image->width + (coeff - 1) * i;
+      for (j = 0; j < image->height; j++) {
+        m = get_pixel(image, i, j, k) * l / image->width;
+        //  if (m>DATA_MAX) m=DATA_MAX; /* Undeclared, defaults to 16. Shouldn't it be 250? */
+        if (m > 254)
+          m = 254; /* What's preventing us from using the data's full range? */
+        put_pixel(image, i, j, k, m);
       }
     }
+  }
 }
 
 /* div by [1...slope] (at origin... at max distance) */
 /* NOTICE! ROUNDS 0.001 => 1 */
-void distance_compensation_div(FmiImage *image,int slope){
-  register int i,j,k;
-  int l,m;
-  for (k=0;k<image->channels;k++)
-    for (i=0;i<image->width;i++){
+void distance_compensation_div(FmiImage *image, int slope)
+{
+  register int i, j, k;
+  int l, m;
+  for (k = 0; k < image->channels; k++) {
+    for (i = 0; i < image->width; i++) {
       /*      l=(image->width-i)/image->width; */
-      l=1024*slope*i/image->width+1024;
-      for (j=0;j<image->height;j++){
-	m=get_pixel(image,i,j,k);
-	put_pixel(image,i,j,k,m*1024/l+(m>0));
+      l = 1024 * slope * i / image->width + 1024;
+      for (j = 0; j < image->height; j++) {
+        m = get_pixel(image, i, j, k);
+        put_pixel(image, i, j, k, m * 1024 / l + (m > 0));
       }
     }
+  }
 }
 
 /*
@@ -1278,6 +1325,11 @@ void remove_horz_lines(FmiImage *target,int min_length,int min_elevation,int wei
   FmiImage trace,trace2,trace3;
   /*  const int   up_edges[1][3]={0,1,-1}; */
   /* const int down_edges[1][3]={-1,1,0}; */
+
+  init_new_image(&trace);
+  init_new_image(&trace2);
+  init_new_image(&trace3);
+
   canonize_image(target,&trace);
   canonize_image(target,&trace2);
   canonize_image(target,&trace3);
@@ -1333,53 +1385,59 @@ void remove_horz_lines(FmiImage *target,int min_length,int min_elevation,int wei
 /* radius          = range of 50% effect */
 /* weight          = steepness, 1=steep, 100=soft */
 /*void detect_insect_band(FmiImage *source,FmiImage *prob,int start_intensity,int radius,int slope){ */
-void detect_insect_band(FmiImage *source,FmiImage *prob,int start_intensity,int radius,int slope){
-  register int i,j,k;
-  int threshold,temp;
-  canonize_image(source,prob);
-  for (k=0;k<source->channels;k++)
-    for (i=0;i<source->width;i++){
-      temp=i-radius;
-      threshold=start_intensity*(256-pseudo_sigmoid(slope,temp))/512+1;
+void detect_insect_band(FmiImage *source, FmiImage *prob, int start_intensity,
+  int radius, int slope)
+{
+  register int i, j, k;
+  int threshold, temp;
+  canonize_image(source, prob);
+  for (k = 0; k < source->channels; k++) {
+    for (i = 0; i < source->width; i++) {
+      temp = i - radius;
+      threshold = start_intensity * (256 - pseudo_sigmoid(slope, temp)) / 512
+          + 1;
       /*      printf("%d\t",threshold); */
-      for (j=0;j<source->height;j++){
-	temp=threshold-get_pixel(source,i,j,k);
-	if (temp<=-threshold) temp=-threshold;
-	/*	temp=MAX(temp,-threshold); */
-	if (get_pixel(source,i,j,k)>DATA_MIN)
-	  put_pixel(prob,i,j,k,128+127*temp/threshold);
-	else
-	  put_pixel(prob,i,j,k,0);
+      for (j = 0; j < source->height; j++) {
+        temp = threshold - get_pixel(source, i, j, k);
+        if (temp <= -threshold)
+          temp = -threshold;
+        /*	temp=MAX(temp,-threshold); */
+        if (get_pixel(source, i, j, k) > DATA_MIN)
+          put_pixel(prob, i, j, k, 128 + 127 * temp / threshold);
+        else
+          put_pixel(prob, i, j, k, 0);
       }
       /*put_pixel(prob,i,j,k,threshold); */
     }
+  }
 }
 
-void detect_biomet(FmiImage *source,FmiImage *prob,int intensity_max,int intensity_delta,int altitude_max,int altitude_delta){
-  register int i,j,k;
-  int f,h;
-  
+void detect_biomet(FmiImage *source, FmiImage *prob, int intensity_max,
+  int intensity_delta, int altitude_max, int altitude_delta)
+{
+  register int i, j, k;
+  int f, h;
+
   setup_context(source);
   /*int threshold,temp; */
-  canonize_image(source,prob);
-  for (k=0;k<source->channels;k++)
-    for (i=0;i<source->width;i++){
+  canonize_image(source, prob);
+  for (k = 0; k < source->channels; k++) {
+    for (i = 0; i < source->width; i++) {
 
-      h=bin_to_altitude(i,source[k+1].elevation_angle);
+      h = bin_to_altitude(i, source[k + 1].elevation_angle);
       /*printf("bin %d[%d]: %d metres",i,k,h); */
-      h=(pseudo_sigmoid(altitude_delta,altitude_max-h)+255)/2;
+      h = (pseudo_sigmoid(altitude_delta, altitude_max - h) + 255) / 2;
       /*      printf(", prob=%d\n",h); */
       /*printf("bin %d[%d]: %d\n",i,k,h); */
-      for (j=0;j<source->height;j++){
+      for (j = 0; j < source->height; j++) {
         /*      for (j=0;j<2;j++){ */
-        f = get_pixel(source,i,j,k);
-        if ((f==0)||(f==NO_DATA)){
-          f=240;  /* ? */
-          put_pixel(prob,i,j,k,0);
-        }
-        else {
-          f=(pseudo_sigmoid(intensity_delta,intensity_max-f)+255)/2;
-          put_pixel(prob,i,j,k,f*h/255);
+        f = get_pixel(source, i, j, k);
+        if ((f == 0) || (f == NO_DATA)) {
+          f = 240; /* ? */
+          put_pixel(prob, i, j, k, 0);
+        } else {
+          f = (pseudo_sigmoid(intensity_delta, intensity_max - f) + 255) / 2;
+          put_pixel(prob, i, j, k, f * h / 255);
         }
         /*	printf("bin %d[%d]: prob=%d \n",i,k,h); */
         /*	put_pixel(prob,i,j,k,f); */
@@ -1387,39 +1445,44 @@ void detect_biomet(FmiImage *source,FmiImage *prob,int intensity_max,int intensi
       }
       /*put_pixel(prob,i,j,k,threshold); */
     }
+  }
 }
 
-void pgm_to_ppm_radar(FmiImage *source,FmiImage *target){
+void pgm_to_ppm_radar(FmiImage *source, FmiImage *target)
+{
   register int i;
   /*  Byte i,r,g,b; */
   ColorMap256 map;
 
-  for (i=0;i<256;i++){
+  for (i = 0; i < 256; i++) {
     /*    colorcode(i,&r,&g,&b); */
-    map[i][0]=i;
-    map[i][1]=i;
-    map[i][2]=i;}
+    map[i][0] = i;
+    map[i][1] = i;
+    map[i][2] = i;
+  }
 
   #include "fmi_radar_codes.inc"
 
-  copy_image_properties(source,target);
-  target->channels=3;
+  copy_image_properties(source, target);
+  target->channels = 3;
   initialize_image(target);
-  map_channel_to_256_colors(source,0,target,map);
+  map_channel_to_256_colors(source, 0, target, map);
 }
 
 /*  */
-void pgm_to_pgm_print(FmiImage *source,FmiImage *target){
+void pgm_to_pgm_print(FmiImage *source, FmiImage *target)
+{
   register int i;
   int g;
-  canonize_image(source,target);
-  for (i=0;i<source->volume;i++){
+  canonize_image(source, target);
+  for (i = 0; i < source->volume; i++) {
     g = source->array[i];
-    if (g>0)
-      g = ((g-64)/16)*32+96;
-      /*  g = ((g-64)/16)*32+128; */
-    if (g>255) g=255;
-    target->array[i] =255-g;
+    if (g > 0)
+      g = ((g - 64) / 16) * 32 + 96;
+    /*  g = ((g-64)/16)*32+128; */
+    if (g > 255)
+      g = 255;
+    target->array[i] = 255 - g;
   }
 }
 
@@ -1440,40 +1503,41 @@ void pgm_to_pgm_print2(FmiImage *source,FmiImage *target){
   }
 }
 
-void pgm_to_ppm_radar_iris(FmiImage *source,FmiImage *target){
+void pgm_to_ppm_radar_iris(FmiImage *source, FmiImage *target)
+{
   register int i;
   int temp;
   ColorMap256 map;
 
-  for (i=0;i<DATA_MIN;i++){
-    map[i][0]=0;
-    map[i][1]=0;
-    map[i][2]=0;}
-
-  /*for (i=0;i<16;i++) */
-  /*fprintf(stderr,"map[%3d]= %3d,%3d,%3d\n",i,map[i][0],map[i][1],map[i][2]); */
-
-
-  for (i=DATA_MIN;i<256;i++){
-    temp=128+pseudo_sigmoid(16,i-112)/2;
-    map[i][0]=MIN(temp,255);
-    temp=pseudo_gauss(32,i-92)+64+pseudo_sigmoid(16,i-144)/4;
-    map[i][1]=MIN(temp,255);
-    temp=pseudo_gauss(24,i-64)*2/3+128+pseudo_sigmoid(32,i-176)/2;
-    map[i][2]=MIN(temp,255);
+  for (i = 0; i < DATA_MIN; i++) {
+    map[i][0] = 0;
+    map[i][1] = 0;
+    map[i][2] = 0;
   }
 
-  map[255][0]=255;
-  map[255][1]=255;
-  map[255][2]=255;
-
-  copy_image_properties(source,target);
-  target->channels=3;
-  initialize_image(target);
-  map_channel_to_256_colors(source,0,target,map);
   /*for (i=0;i<16;i++) */
   /*fprintf(stderr,"map[%3d]= %3d,%3d,%3d\n",i,map[i][0],map[i][1],map[i][2]); */
 
+  for (i = DATA_MIN; i < 256; i++) {
+    temp = 128 + pseudo_sigmoid(16, i - 112) / 2;
+    map[i][0] = MIN(temp,255);
+    temp = pseudo_gauss(32, i - 92) + 64 + pseudo_sigmoid(16, i - 144) / 4;
+    map[i][1] = MIN(temp,255);
+    temp = pseudo_gauss(24, i - 64) * 2 / 3 + 128 + pseudo_sigmoid(32, i - 176)
+        / 2;
+    map[i][2] = MIN(temp,255);
+  }
+
+  map[255][0] = 255;
+  map[255][1] = 255;
+  map[255][2] = 255;
+
+  copy_image_properties(source, target);
+  target->channels = 3;
+  initialize_image(target);
+  map_channel_to_256_colors(source, 0, target, map);
+  /*for (i=0;i<16;i++) */
+  /*fprintf(stderr,"map[%3d]= %3d,%3d,%3d\n",i,map[i][0],map[i][1],map[i][2]); */
 }
 
 void pgm_to_redgreen(FmiImage *source,FmiImage *target){
@@ -1499,6 +1563,9 @@ void pgm_to_redgreen(FmiImage *source,FmiImage *target){
 void virtual_rhi(FmiImage *volume){
   int i,j=0,k,j_start=0,j_end;
   FmiImage target;
+
+  init_new_image(&target);
+
   setup_context(volume);
   copy_image_properties(volume,&target);
   target.channels=1;
@@ -1512,6 +1579,8 @@ void virtual_rhi(FmiImage *volume){
 	put_pixel(&target,i,j,0,5);
       j_start=j_end;}
   }
+
+  reset_image(&target);
 }
 
 void gradient_rgb(FmiImage *volume){

@@ -47,7 +47,7 @@ extern float fmi_radar_sweep_angles[FMI_RADAR_SWEEP_COUNT];
 extern float fmi_radar_bin_depth;
 void setup_context(FmiImage * source);
 
-void dump_sweep_info();
+void dump_sweep_info(void);
 
 /* TRANSFORMS */
 /* intensity transforms */

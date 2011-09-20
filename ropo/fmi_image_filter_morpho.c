@@ -45,38 +45,49 @@ void morph_opening(FmiImage *source,FmiImage *target,int w,int h){
   reset_image(&temp);
 }
 
-void distance_transform(FmiImage *source,FmiImage *target){
-	register int i,j,k,s,t;
-  if (source!=target)
-    copy_image(source,target);
+void distance_transform(FmiImage *source, FmiImage *target)
+{
+  register int i, j, k, s, t;
+  if (source != target)
+    copy_image(source, target);
 
-  for (j=0;j<target->height;j++)
-    for (i=0;i<target->width;i++)
-      for (k=0;k<target->channels;k++){
-	t=get_pixel(target,i,j,k);
-	s=get_pixel(target,i-1,j,k);
-	if (s>0) s--;
-	if (s>t) {
-	  put_pixel(target,i,j,k,s);
-	  t=s;}
-	s=get_pixel(target,i,j-1,k);
-	if (s>0) s--;
-	if (s>t) 
-	  put_pixel(target,i,j,k,s);
+  for (j = 0; j < target->height; j++) {
+    for (i = 0; i < target->width; i++) {
+      for (k = 0; k < target->channels; k++) {
+        t = get_pixel(target, i, j, k);
+        s = get_pixel(target, i - 1, j, k);
+        if (s > 0)
+          s--;
+        if (s > t) {
+          put_pixel(target, i, j, k, s);
+          t = s;
+        }
+        s = get_pixel(target, i, j - 1, k);
+        if (s > 0)
+          s--;
+        if (s > t)
+          put_pixel(target, i, j, k, s);
       }
+    }
+  }
 
-  for (j=target->height-1;j>=0;j--)
-    for (i=target->width-1;i>0;i--)
-      for (k=0;k<target->channels;k++){
-	t=get_pixel(target,i,j,k);
-	s=get_pixel(target,i+1,j,k);
-	if (s>0) s--;
-	if (s>t){
-	  put_pixel(target,i,j,k,s);
-	  t=s;}
-	s=get_pixel(target,i,j+1,k);
-	if (s>0) s--;
-	if (s>t) 
-	  put_pixel(target,i,j,k,s);
+  for (j = target->height - 1; j >= 0; j--) {
+    for (i = target->width - 1; i > 0; i--) {
+      for (k = 0; k < target->channels; k++) {
+        t = get_pixel(target, i, j, k);
+        s = get_pixel(target, i + 1, j, k);
+        if (s > 0)
+          s--;
+        if (s > t) {
+          put_pixel(target, i, j, k, s);
+          t = s;
+        }
+        s = get_pixel(target, i, j + 1, k);
+        if (s > 0)
+          s--;
+        if (s > t)
+          put_pixel(target, i, j, k, s);
       }
+    }
+  }
 }

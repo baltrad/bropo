@@ -113,6 +113,11 @@ class PyRopoGeneratorTest(unittest.TestCase):
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
     b.sun2(-10, 32, 3, 45, 2)
 
+  def testRestore2(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    b.sun2(-10, 32, 3, 45, 2).restore2(50)
+
   def testChaining_speckEmitterEmitter2Clutter(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))

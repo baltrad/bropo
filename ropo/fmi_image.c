@@ -99,7 +99,6 @@ int initialize_image(FmiImage *img){
   img->type=TRUE_IMAGE;
   img->area=img->width*img->height;
   img->volume=img->area*img->channels;
-  RAVE_ASSERT((img->array == NULL), "image->array != NULL");
   img->array=(Byte *) RAVE_MALLOC(img->volume);
   img->coord_overflow_handler_x=BORDER;
   img->coord_overflow_handler_y=BORDER;

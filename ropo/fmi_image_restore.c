@@ -63,6 +63,9 @@ void restore_image_neg(FmiImage *source,FmiImage *target,FmiImage *prob,Byte thr
 void restore_image2(FmiImage *source,FmiImage *target,FmiImage *prob,Byte threshold){ 
   register int i;
   FmiImage median;
+
+  init_new_image(&median);
+
   canonize_image(source,prob);
   canonize_image(source,target);
   canonize_image(source,&median);

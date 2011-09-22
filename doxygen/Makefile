@@ -28,7 +28,7 @@ all:
 
 .PHONY: doc
 doc:
-	@mkdir --parent html
+	@mkdir -p html
 	@doxygen ropo_doxyfile.ini
 
 .PHONY: clean

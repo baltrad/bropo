@@ -2,7 +2,7 @@
 '''
 Copyright (C) 2011- Swedish Meteorological and Hydrological Institute (SMHI)
 
-This file is part of RAVE.
+This file is part of the bRopo extension to RAVE.
 
 RAVE is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -29,10 +29,15 @@ import _fmiimage
 import _ropogenerator
 import odim_source
 from Proj import rd
+import numpy
+import _polarscan
+import _polarscanparam
+from rave_defines import UTF8
 
 
 ## Copies the top-level 'what' attributes from one object to another.
 # Fixes /what/source in the process, if it doesn't contain the NOD identifier.
+# Assumes NOD can be looked up based on WMO.
 # @param ino input PVOL or SCAN object
 # @param outo output PVOL or SCAN object
 def copy_topwhat(ino, outo):
@@ -46,12 +51,12 @@ def copy_topwhat(ino, outo):
     S = odim_source.ODIM_Source(ino.source)
     if not S.nod:
         S.nod = odim_source.NOD[S.wmo]
-        outo.source = odim_source.SOURCE[S.nod]
+        outo.source = odim_source.SOURCE[S.nod].encode(UTF8)
     else:
         outo.source = ino.source
 
 
-## TODO: activate parameters list. This first version uses only the default, assumes DBZH.
+## TODO: activate parameters list. This first version uses only the default DBZH.
 #  TODO: separation of probability fields.
 # @param scan input SCAN object
 # @param options variable-length object containing argument names and values
@@ -62,40 +67,63 @@ def process_scan(scan, options):
         param = scan.getParameter(options.params)
         raw_thresh = int((int(options.threshold)-param.offset) / param.gain)
         rg = _ropogenerator.new(image).threshold(raw_thresh)
+
+        if options.sepprob: detectors = 0
     
         if options.speck:
             a,b = eval(options.speck)
             rg.speck(a,b)
+            if options.sepprob: detectors += 1
+
         if options.speckNormOld:
             a,b,c = eval(options.speckNormOld)
             rg.speckNormOld(a,b,c)
+            if options.sepprob: detectors += 1
+
         if options.clutter:
             a,b = eval(options.clutter)
             rg.clutter(a,b)
+            if options.sepprob: detectors += 1
+
         if options.clutter2:
             a,b = eval(options.clutter2)
             rg.clutter2(a,b)
+            if options.sepprob: detectors += 1
+
         if options.softcut:
             a,b,c = eval(options.softcut)
             rg.softcut(a,b,c)
+            if options.sepprob: detectors += 1
+
         if options.biomet:
             a,b,c,d = eval(options.biomet)
             rg.biomet(a,b,c,d)
+            if options.sepprob: detectors += 1
+
         if options.ship:
             a,b = eval(options.ship)
             rg.ship(a,b)
+            if options.sepprob: detectors += 1
+
         if options.emitter:
             a,b = eval(options.emitter)
             rg.emitter(a,b)
+            if options.sepprob: detectors += 1
+                
         if options.emitter2:
             a,b,c = eval(options.emitter2)
             rg.emitter2(a,b,c)
+            if options.sepprob: detectors += 1
+                
         if options.sun:
             a,b,c = eval(options.sun)
             rg.sun(a,b,c)
+            if options.sepprob: detectors += 1
+
         if options.sun2:
             a,b,c,d,e = eval(options.sun2)
             rg.sun2(a,b,c,d,e)
+            if options.sepprob: detectors += 1
 
         classification = rg.classify().classification.toRaveField()
         if options.restore:
@@ -103,6 +131,10 @@ def process_scan(scan, options):
         elif options.restore2:
             restored = rg.restore2(int(options.restore_thresh)).toPolarScan()
         restored.addQualityField(classification)
+
+        if options.sepprob:
+            for d in range(detectors):
+                restored.addQualityField(rg.getProbabilityField(d).toRaveField())
         
         # Copy other parameter datasets in input scan
         for p in scan.getParameterNames():
@@ -145,7 +177,8 @@ if __name__ == "__main__":
 
     usage = "usage: %prog -i <infile> --detector=args [--detector=args] ... [oh]"
     usage += "\n\nROPO was written by Markus Peura at FMI. This help text is based on information"
-    usage += "\navailable in ROPO, and it is valid for the functionality available for BALTRAD."
+    usage += "\navailable in ROPO's code base."
+    usage += "\nThis command-line tool has been built for the BALTRAD toolbox."
     usage += "\n\nIf no output file is given, the input file will be over-written."
     parser = OptionParser(usage=usage)
 
@@ -165,23 +198,23 @@ if __name__ == "__main__":
 
     parser.add_option("--separate-probabilities", dest="sepprob",
                       default=False,
-                      help="True or False. Denotes whether to accumulate all detectors' probability fields, or keep them separate. Defaults to False.")
+                      help="True or False. Denotes whether to accumulate all detectors' probability fields into a maximum field, or keep them separate. Defaults to False.")
 
     parser.add_option("--threshold", dest="threshold",
-                      default=0,
-                      help="dBZ threshold prior to processing. Defaults to 0 dBZ.")
+                      default=-24,
+                      help="dBZ threshold prior to processing. Defaults to -24 dBZ.")
 
     parser.add_option("--restore-thresh", dest="restore_thresh",
-                      default=154,
-                      help="Threshold value when applying probability classification to remove anomalies, e.g. 154.")
+                      default=108,
+                      help="Threshold raw value when applying probability classification to remove anomalies. Defaults to 108.")
 
     parser.add_option("--restore", dest="restore",  
-                      default=False,
-                      help="Uses the anomaly probability field to delete anomalies without filling holes. Defaults to False.")  
+                      default=True,
+                      help="Uses the anomaly probability field to delete anomalies without filling holes. Defaults to True.")  
 
     parser.add_option("--restore-fill", dest="restore2",  
-                      default=True,
-                      help="Uses the anomaly probability field to delete anomalies AND fill in holes. Defaults to True.")  
+                      default=False,
+                      help="Uses the anomaly probability field to delete anomalies AND fill in holes. Defaults to False.")  
 
     parser.add_option("--biomet", dest="biomet",
                       help="<dbz_max> <dbz_delta> <alt_max in meters> <alt_delta in km> Remove insect band e.g. -10,5,5000,1")
@@ -216,6 +249,10 @@ if __name__ == "__main__":
     parser.add_option("--sun2", dest="sun2",
                       help="<MIN_DBZ>  <min_length> <max_thickness> <azimuth in degrees> <elevation in degrees> Remove sun, e.g. -20,100,3,45,2")
 
+    parser.add_option("--lookup", dest="lookup", 
+                      default=False,
+                      help="Looks up which detectors to run, along with their arguments, from XML file. Useful for automated processing or just convenience. The NOD identifier of the /what/source attribute is used as the look-up key. If NOD doesn't exist, WMO is used to look up NOD. If no look-up exists for that radar, a default set of arguments is used. Using --lookup=True overrides all other detector-specific arguments.")
+
     (options, args) = parser.parse_args()
 
     if options.infile != None:  # More checks should be added.
@@ -226,7 +263,11 @@ if __name__ == "__main__":
             print "Input file must be either polar scan or volume. Exiting ..."
             sys.exit(1)
 
-        if rio.objectType == _raveio.Rave_ObjectType_PVOL:
+        if options.lookup:
+            import ropo_realtime
+            ret = ropo_realtime.generate(rio)
+
+        elif rio.objectType == _raveio.Rave_ObjectType_PVOL:
             ret = process_pvol(rio.object, options)
 
         elif rio.objectType == _raveio.Rave_ObjectType_SCAN:

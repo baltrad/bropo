@@ -2,7 +2,7 @@
 '''
 Copyright (C) 2011- Swedish Meteorological and Hydrological Institute (SMHI)
 
-This file is part of RAVE.
+This file is part of the bRopo extension to RAVE.
 
 RAVE is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@ along with RAVE.  If not, see <http://www.gnu.org/licenses/>.
 ## @author Daniel Michelson, SMHI
 ## @date 2011-09-06
 
-import os, time
+import os, time, copy
 import _raveio
 import _fmiimage
 import _ropogenerator
@@ -33,15 +33,14 @@ from rave_defines import RAVECONFIG
 import odim_source
 from Proj import rd
 from rave_defines import UTF8
-import copy
 
 
 ## Contains site-specific argument settings 
 CONFIG_FILE = os.path.join(RAVECONFIG, 'ropo_options.xml')
 
 # Guideline command-line arguments when creating this functionality
-# --parameters=DBZH --threshold=<see below> --restore-fill=True --restore-thresh=154 
-# --softcut=5,170,180 --speckNormOld=-20,24,8 --emitter2=-30,3,2 --ship=20,8 --speck=10,12
+# --parameters=DBZH --threshold=<see below> --restore-fill=True --restore-thresh=108 
+# --softcut=5,170,180 --speckNormOld=-20,24,8 --emitter2=-10,3,2 --ship=20,8 --speck=-30,12
 
 ## Dictionary containing static reflectivity thresholds, one for each month of the year.
 # To be used when initially thresholding reflectivity data.
@@ -49,9 +48,12 @@ CONFIG_FILE = os.path.join(RAVECONFIG, 'ropo_options.xml')
 THRESHOLDS = {"COLD"      : ( -6,  -4,  -2,   0,   2,   4,   6,   4,   2,   0,  -2,  -4),
               "VERY_COLD" : (-12, -10,  -6,  -4,   0,   4,   6,   4,  -4,  -8, -10, -12),
               "TEMPERATE" : (  0,   2,   4,   6,   8,  10,  10,   8,   6,   4,   2,   0),
-              "FLAT-30"   : (-30, -30, -30, -30, -30, -30, -30, -30, -30, -30, -30, -30)
+              "FLAT-10"   : (-10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10),
+              "FLAT-24"   : (-24, -24, -24, -24, -24, -24, -24, -24, -24, -24, -24, -24),
+              "FLAT-30"   : (-30, -30, -30, -30, -30, -30, -30, -30, -30, -30, -30, -30),
+              "NONE"      : None
               }
-THRESHOLDS["DEFAULT"] = THRESHOLDS["COLD"]
+THRESHOLDS["DEFAULT"] = THRESHOLDS["FLAT-24"]
 
 initialized = 0
 
@@ -138,15 +140,16 @@ def copy_topwhat(ino, outo):
 # @param options variable-length object containing argument names and values
 # @returns scan object containing detected and removed anomalies
 def process_scan(scan, options):
-    if scan.elangle*rd < options.elev:
-        image = _fmiimage.fromRave(scan, options.params)        
-        param = scan.getParameter(options.params)
+    image = _fmiimage.fromRave(scan, options.params)        
+    param = scan.getParameter(options.params)
+    rg = _ropogenerator.new(image)
+    if options.threshold:
         raw_thresh = int((options.threshold-param.offset) / param.gain)
-        rg = _ropogenerator.new(image).threshold(raw_thresh)
-
-        if options.speck:
-            a,b = options.speck
-            rg.speck(a,b)
+        rg.threshold(raw_thresh)
+    if options.speck:
+        a,b = options.speck
+        rg.speck(a,b)
+    if scan.elangle*rd < options.elev:
         if options.speckNormOld:
             a,b,c = options.speckNormOld
             rg.speckNormOld(a,b,c)
@@ -160,25 +163,22 @@ def process_scan(scan, options):
             a,b,c = options.emitter2
             rg.emitter2(a,b,c)
 
-        classification = rg.classify().classification.toRaveField()
-        if options.restore:
-            restored = rg.restore(int(options.restore_thresh)).toPolarScan()
-        elif options.restore2:
-            restored = rg.restore2(int(options.restore_thresh)).toPolarScan()
+    classification = rg.classify().classification.toRaveField()
+    if options.restore:
+        restored = rg.restore(int(options.restore_thresh)).toPolarScan()
+    elif options.restore2:
+        restored = rg.restore2(int(options.restore_thresh)).toPolarScan()
         restored.addQualityField(classification)
         
-        # Copy other parameter datasets in input scan
-        for p in scan.getParameterNames():
-            if not restored.hasParameter(p):
-                restored.addParameter(scan.getParameter(p))
-        # Copy also 'how' attributes at top of scan, if any
-        for a in scan.getAttributeNames():
-            restored.addAttribute(a, scan.getAttribute(a))
-        # Do we need to copy any mandatory attributes at top of scan? 
+    # Copy other parameter datasets in input scan
+    for p in scan.getParameterNames():
+        if not restored.hasParameter(p):
+            restored.addParameter(scan.getParameter(p))
+    # Copy also 'how' attributes at top of scan, if any
+    for a in scan.getAttributeNames():
+        restored.addAttribute(a, scan.getAttribute(a))
         
-        return restored
-    else:
-        return scan
+    return restored
 
 
 ## Loops through a volume and processes scans using \ref process_scan
@@ -196,6 +196,7 @@ def process_pvol(pvol, options):
     # over-written with the looked-up threshold itself. 
     month = int(pvol.date[4:6])-1
     options.threshold = THRESHOLDS[options.threshold][month]
+#    options.threshold = THRESHOLDS["DEFAULT"][month]
 
     for a in pvol.getAttributeNames():  # Copy also 'how' attributes at top level of volume, if any
         out.addAttribute(a, pvol.getAttribute(a))
@@ -225,6 +226,7 @@ def generate(rio):
         month = int(inobj.date[4:6])-1
         options.threshold = THRESHOLDS[options.threshold][month]
         ret = process_scan(inobj, options)
+        copy_topwhat(inobj, ret)
 
     return ret
 

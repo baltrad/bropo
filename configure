@@ -3603,7 +3603,7 @@ fi
 esac
 
 if [ "$GOT_PNG_INC" = "no" -o "$GOT_PNG_LIB" = "no" ]; then
-  as_fn_error $? "\"Can not build bRack without png support\"" "$LINENO" 5
+  as_fn_error $? "\"Can not build bRopo without png support\"" "$LINENO" 5
 fi
 
 

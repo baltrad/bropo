@@ -1,5 +1,5 @@
 dnl	This file is an input file used by the GNU "autoconf" program to
-dnl	generate the file "configure", which is run during brack
+dnl	generate the file "configure", which is run during bRopo
 dnl	installation to configure the system for the local environment.
 
 AC_INIT([bRopo],[0.1])
@@ -203,7 +203,7 @@ case $withval in
 esac
 
 if [[ "$GOT_PNG_INC" = "no" -o "$GOT_PNG_LIB" = "no" ]]; then
-  AC_MSG_ERROR("Can not build bRack without png support")
+  AC_MSG_ERROR("Can not build bRopo without png support")
 fi
 
 

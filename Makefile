@@ -39,6 +39,7 @@ install: def.mk
 	$(MAKE) -C ropo install
 	$(MAKE) -C pyropo install
 	$(MAKE) -C bin install
+	$(MAKE) -C config install
 	@echo "################################################################"
 	@echo "To run the binaries you will need to setup your library path to"
 	@echo "LD_LIBRARY_PATH="`cat def.mk | grep LD_PRINTOUT | sed -e"s/LD_PRINTOUT=//"`

@@ -1,9 +1,9 @@
 #!/bin/sh
 ############################################################
-# Description: Script that should be executed from a continous
-# integration runner. It is nessecary to point out the proper
-# paths to RAVE since this test sequence should be run whenever
-# RAVE is changed.
+# Description: Script that should be executed from a continuous
+# integration runner. It is necessary to point out the proper
+# paths to bRopo since this test sequence should be run whenever
+# bRopo is changed.
 #
 # Author(s):   Anders Henja
 #

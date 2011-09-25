@@ -1,7 +1,7 @@
 #!/bin/sh
 ############################################################
 # Description: Script that performs the actual unit test of
-#   rave.
+#   bRopo.
 #
 # Author(s):   Anders Henja
 #

@@ -83,6 +83,7 @@ install:
 	@mkdir -p ${prefix}/share/bropo/pyropo
 	@cp -v -f $(FMIIMAGE_TARGET) ${prefix}/share/bropo/pyropo
 	@cp -v -f $(ROPO_TARGET) ${prefix}/share/bropo/pyropo
+	@cp -v -f *.py ${prefix}/share/bropo/pyropo
 	@echo "$(prefix)/share/bropo/pyropo" > "$(SITEPACK_PYTHON)/pyropo.pth"
 
 .PHONY=clean

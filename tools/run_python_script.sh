@@ -1,6 +1,6 @@
 #!/bin/sh
 ############################################################
-# Description: Script that executes a python script with proper
+# Description: Script that executes a Python script with proper
 # settings in this build.
 #
 # Author(s):   Anders Henja

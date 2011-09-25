@@ -29,14 +29,14 @@ import _raveio
 import _fmiimage
 import _ropogenerator
 import xml.etree.ElementTree as ET
-from rave_defines import RAVECONFIG
 import odim_source
 from Proj import rd
 from rave_defines import UTF8
 
 
 ## Contains site-specific argument settings 
-CONFIG_FILE = os.path.join(RAVECONFIG, 'ropo_options.xml')
+CONFIG_FILE = os.path.join(os.path.join(os.path.split(os.path.split(_ropogenerator.__file__)[0])[0], 
+                                        'config'), 'ropo_options.xml')
 
 # Guideline command-line arguments when creating this functionality
 # --parameters=DBZH --threshold=<see below> --restore-fill=True --restore-thresh=108 

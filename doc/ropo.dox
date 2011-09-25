@@ -215,7 +215,74 @@ fail:
  output.save()
  \endverbatim
  
-  
+ \section realtime Real-time bRopo
+ 
+ We have included a plugin for use with the RAVE Product Generation Framework (PGF). This
+ plugin is called rave_pgf_ropo_plugin.py and the PGF is the XML-RPC server presented and 
+ described in the RAVE documentation. Basically, this plugin allows you to register bRopo as 
+ a product generator that can be run in real time by the PGF server.
+ 
+ Registering this bRopo with RAVE can be done by using the \em pgf_registry command with the following
+ options and arguments:
+ 
+ \verbatim
+ % pgf_registry -a -H http://<host>:<port>/RAVE --name=fi.fmi.ropo -m rave_pgf_ropo_plugin -f generate -d 'Detects and removes non-precipitation echoes.'
+ \endverbatim 
+ 
+ Note that this plugin's \em generate function does not take any arguments except the files list, 
+ and this list must contain only one single file containing either a polar scan or volume. The 
+ reason for this is that bRopo has so many bells and whistles that, at least for the purposes of
+ real-time operation, it makes more sense to organize all arguments in a separate registry.
+ 
+ The bRopo options/arguments is an XML file designed to be read, understood, and edited easily by 
+ human beings. There is no functionality to verify the integrity of the XML after you have edited the 
+ registry, but on a development system you can install it and check by loading it:
+ 
+ \verbatim
+ (shell)$ python
+ >>> import ropo_realtime
+ \endverbatim 
+ 
+ If the \em ropo_realtime module is loaded correctly, it will do so silently. If the Python interpreter
+ throws an error that looks like this: "xml.parsers.expat.ExpatError: not well-formed (invalid token):",
+ then the XML is invalid and you need to fix it. 
+ There is no functionality to validate the integrity of the bRopo arguments themselves, ie. whether 
+ the argument values given are correct in number and within reasonable bounds.
+ 
+ The format of an XML entry is the following:
+ 
+ \verbatim
+ <lvrix threshold="COLD" parameters="DBZH" highest-elev="2.0" restore-thresh="80" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,2" ship="20,8" speck="-30,12" />
+ \endverbatim 
+
+The options \em threshold, \em parameters, \em highest-elev, and \em restore-thresh are all mandatory,
+and so is either \em restore or \em restore-fill. The other options are the anomaly detectors,
+and they can be used or not depending on your preferences. Note that for real-time purposes only
+those anomaly detectors given above in the example are the ones supported. This is because these
+are the ones that are battle-tested after 10 years of real-time use. 
+
+The example values above are almost the same as the default values, but they have been tuned for use with data from the 
+Latvian radar at Riga aiport. Additional radars that need special tuning of bRopo's options can be
+added as separate entries. The important thing to remember is that each radar is identified using
+its NOD identifier that should be included in the \em /what/source metadata attribute in ODIM_H5.
+
+The values for the \em threshold option are looked up according to a dictionary found at the top of
+the ropo_realtime.py module. The item for each entry in the THRESHOLDS dictionary contains a 12-tuple of dBZ
+thresholds, one for each month of the year starting with January. The idea is to be able to define
+reflectivity thresholds that are either "flat", ie. static throughout the year, or a bit more dynamic
+depending on their location. The functinality in bRopo looks up the threshold of the month based on the
+\em /what/date attribute in ODIM_H5. You are free to define your own thresholds according to this
+scheme, but keep in mind that the tuple must always have 12 values.   
+
+All numerical arguments are given as strings, and they are converted to integers or floats during runtime.
+
+Data from radars without a specific entry will be processed according to a set of options/arguments
+called \em default.
+
+If you edit the registry, you must restart the PGF server for the contents to be reloaded. 
+If you're running the command-line \em ropo tool, you don't need to reload anything. If you want
+to look up the options/arguments automatically instead of writing them all out manually when using
+the command-line tool, just use \em ropo's \em --lookup option.  
  
 */
   

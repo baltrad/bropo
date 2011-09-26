@@ -1,13 +1,29 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <ropo-options>
-  <default threshold="DEFAULT" parameters="DBZH" highest-elev="2.0"
-  restore-thresh="154" restore-fill="True" softcut="5,170,180"
-  speckNormOld="-20,24,8" emitter2="-30,3,2" ship="20,8" speck="10,12" />
-  <lvrix threshold="COLD" parameters="DBZH" highest-elev="2.0"
-  restore-thresh="154" restore-fill="True" softcut="5,170,180"
-  speckNormOld="-20,24,8" emitter2="-30,3,2" ship="20,8"
-  speck="10,12" />
-  <fiuta threshold="COLD" parameters="DBZH" highest-elev="2.0"
-  restore-thresh="154" restore-fill="True" softcut="5,170,180"
-  speckNormOld="-20,24,8" emitter2="-30,3,2" ship="20,8" speck="10,12" />
+  <default threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-30,12" />
+  <lvrix threshold="COLD" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,3" ship="20,8" speck="-30,12" />
+  <plleg threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,3" ship="20,8" speck="-30,12" />
+  <plram threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,3" ship="20,8" speck="-30,12" />
+  <plpas threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,3" ship="20,8" speck="-30,12" />
+  <plrze threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,3" ship="20,8" speck="-30,12" />
+  <plpoz threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,3" ship="20,8" speck="-30,12" />
+  <plswi threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,3" ship="20,8" speck="-30,12" />
+  <plgda threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,3" ship="20,8" speck="-30,12" />
+  <plbrz threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,3" ship="20,8" speck="-30,12" />
+  <fiuta threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="80" restore="True" softcut="10,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-30,12" />
+  <fiika threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-30,12" />
+  <fikor threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="80" restore="True" softcut="10,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-30,12" />
+  <fivim threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="80" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-30,12" />
+  <sekir threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-28,12" />
+  <selul threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-28,12" />
+  <seovi threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-28,12" />
+  <seosu threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-28,12" />
+  <sehud threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-28,12" />
+  <selek threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-28,12" />
+  <searl threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-28,12" />
+  <sease threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-28,12" />
+  <sevil threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-28,12" />
+  <sevar threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-28,12" />
+  <seang threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-28,12" />
+  <sekkr threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-28,12" />
 </ropo-options>

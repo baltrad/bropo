@@ -110,10 +110,8 @@ class options:
 # @param inobj input SCAN or PVOL object
 # @return options object. If the look-up fails, then default options are returned
 def get_options(inobj):
+    odim_source.CheckSource(inobj)
     S = odim_source.ODIM_Source(inobj.source)
-    if not S.nod:
-        S.nod = odim_source.NOD[S.wmo]
-        inobj.source = odim_source.SOURCE[S.nod].encode(UTF8)
     try:
         return copy.deepcopy(ARGS[S.nod])
     except KeyError:

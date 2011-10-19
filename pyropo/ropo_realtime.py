@@ -166,7 +166,7 @@ def process_scan(scan, options):
         restored = rg.restore(int(options.restore_thresh)).toPolarScan()
     elif options.restore2:
         restored = rg.restore2(int(options.restore_thresh)).toPolarScan()
-        restored.addQualityField(classification)
+    restored.addQualityField(classification)
         
     # Copy other parameter datasets in input scan
     for p in scan.getParameterNames():

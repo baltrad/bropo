@@ -28,6 +28,8 @@ import os, time, copy
 import _raveio
 import _fmiimage
 import _ropogenerator
+import _polarvolume
+import _polarscan
 import xml.etree.ElementTree as ET
 import odim_source
 from Proj import rd
@@ -208,19 +210,17 @@ def process_pvol(pvol, options):
 
 
 ## Generate - does the real work
-# @param rio RaveIOCore object containing SCAN or PVOL object
+# @param rio SCAN oR PVOL
 # @return SCAN or PVOL object, with anomalies hopefully identified and removed
-def generate(rio):
-    if rio.objectType not in (_raveio.Rave_ObjectType_PVOL, _raveio.Rave_ObjectType_SCAN):
+def generate(inobj):
+    if _polarscan.isPolarScan(inobj)==False and _polarvolume.isPolarVolume(inobj)==False:
         raise IOError, "Input file must be either polar scan or volume."
 
-    inobj = rio.object
     options = get_options(inobj)  # Gets options/arguments for this radar. Fixes /what/source if required.
 
-    if rio.objectType == _raveio.Rave_ObjectType_PVOL:
+    if _polarvolume.isPolarVolume(inobj):
         ret = process_pvol(inobj, options)
-
-    elif rio.objectType == _raveio.Rave_ObjectType_SCAN:
+    elif _polarscan.isPolarScan(inobj):
         month = int(inobj.date[4:6])-1
         options.threshold = THRESHOLDS[options.threshold][month]
         ret = process_scan(inobj, options)

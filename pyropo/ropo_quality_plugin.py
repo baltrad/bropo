@@ -17,21 +17,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with RAVE.  If not, see <http://www.gnu.org/licenses/>.
 '''
 ##
-# A composite quality plugin for enabling the bRopo support 
+# A quality plugin for enabling the bRopo support 
 
 ## 
 # @file
 # @author Anders Henja, SMHI
 # @date 2011-11-07
 
-from rave_composite_quality_plugin import rave_composite_quality_plugin
+from rave_quality_plugin import rave_quality_plugin
 import _polarvolume
 
-class ropo_pgf_composite_quality_plugin(rave_composite_quality_plugin):
+class ropo_quality_plugin(rave_quality_plugin):
   ##
   # Default constructor
   def __init__(self):
-    super(ropo_pgf_composite_quality_plugin, self).__init__()
+    super(ropo_quality_plugin, self).__init__()
   
   ##
   # @return a list containing the string se.smhi.detector.poo

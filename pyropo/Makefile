@@ -26,25 +26,14 @@
 
 # Drain specific c flags
 #
-CFLAGS= $(SHARED_FLAG) $(CCOPTS) $(DEFS) -I../ropo -I. $(PNG_INCLUDE_DIR) $(PYTHON_INCLUDE_FLAG)\
-			$(NUMPY_INCLUDE_FLAG) $(RAVE_INCLUDE_FLAG) $(RAVE_INCLUDE_FLAG)/python \
-			$(HLHDF_INCLUDE_FLAG) $(ZLIB_INCDIR) $(HDF5_INCDIR) $(PROJ_INCLUDE_FLAG)
+CFLAGS= -I../ropo -I. $(PNG_INCLUDE_DIR) $(RAVE_MODULE_PYCFLAGS)
 
 # Linker flags
 #
-LDFLAGS= -L../ropo -L. $(PNG_LIB_DIR) $(RAVE_LIB_FLAG) $(HLHDF_LIBRARY_FLAG) $(ZLIB_LIBDIR) \
-			$(HDF5_LIBDIR) $(PROJ_LIB_FLAG) 
+LDFLAGS= -L../ropo -L. $(PNG_LIB_DIR) $(RAVE_MODULE_LDFLAGS)
 
-# We need to ensure that raves expat requirements are managed
-EXPAT_LIBRARY=
-ifeq ($(EXPAT_SUPPRESSED), no)
-CPPFLAGS+= $(EXPAT_INCLUDE_DIR) -DRAVE_XML_SUPPORTED
-CFLAGS+= $(EXPAT_INCLUDE_DIR) -DRAVE_XML_SUPPORTED
-LDFLAGS+= $(EXPAT_LIB_DIR)
-EXPAT_LIBRARY=-lexpat
-endif
-
-LIBRARIES=-lhlhdf -lproj  $(EXPAT_LIBRARY) -lravetransform -lravepyapi $(MAGICK_LIBRARIES) -lbropo -lpng
+# We need to ensure that raves extra components are managed
+LIBRARIES= -lbropo $(RAVE_MODULE_PYLIBRARIES) -lpng
 
 # --------------------------------------------------------------------
 # Fixed definitions

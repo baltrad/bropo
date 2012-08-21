@@ -265,7 +265,7 @@ if __name__ == "__main__":
 
         if options.lookup:
             import ropo_realtime
-            ret = ropo_realtime.generate(rio)
+            ret = ropo_realtime.generate(rio.object)
 
         elif rio.objectType == _raveio.Rave_ObjectType_PVOL:
             ret = process_pvol(rio.object, options)

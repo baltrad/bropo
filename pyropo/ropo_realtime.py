@@ -140,8 +140,10 @@ def copy_topwhat(ino, outo):
 # @param options variable-length object containing argument names and values
 # @returns scan object containing detected and removed anomalies
 def process_scan(scan, options):
-    image = _fmiimage.fromRave(scan, options.params)        
-    param = scan.getParameter(options.params)
+    newscan, gates = PadNrays(scan, options)
+
+    image = _fmiimage.fromRave(newscan, options.params)        
+    param = newscan.getParameter(options.params)
     rg = _ropogenerator.new(image)
     if options.threshold:
         raw_thresh = int((options.threshold-param.offset) / param.gain)
@@ -168,17 +170,14 @@ def process_scan(scan, options):
         restored = rg.restore(int(options.restore_thresh)).toPolarScan()
     elif options.restore2:
         restored = rg.restore2(int(options.restore_thresh)).toPolarScan()
-    restored.addQualityField(classification)
         
-    # Copy other parameter datasets in input scan
-    for p in scan.getParameterNames():
-        if not restored.hasParameter(p):
-            restored.addParameter(scan.getParameter(p))
-    # Copy also 'how' attributes at top of scan, if any
-    for a in scan.getAttributeNames():
-        restored.addAttribute(a, scan.getAttribute(a))
-        
-    return restored
+    restored, classification = UnpadNrays(restored, classification, gates)
+    dbzh = scan.getParameter("DBZH")
+    dbzh.setData(restored.getParameter("DBZH").getData())
+    scan.addParameter(dbzh)
+    scan.addQualityField(classification)
+    
+    return scan
 
 
 ## Loops through a volume and processes scans using \ref process_scan
@@ -210,7 +209,7 @@ def process_pvol(pvol, options):
 
 
 ## Generate - does the real work
-# @param rio SCAN oR PVOL
+# @param inobj SCAN or PVOL object
 # @return SCAN or PVOL object, with anomalies hopefully identified and removed
 def generate(inobj):
     if _polarscan.isPolarScan(inobj)==False and _polarvolume.isPolarVolume(inobj)==False:
@@ -227,6 +226,58 @@ def generate(inobj):
         copy_topwhat(inobj, ret)
 
     return ret
+
+
+## Internal function to wrap rays near 360-0 degrees. This addresses a design
+# flaw in ropo's original C code that leads to data being removed in this sector.
+# NOTE that this fix is only being made available at the Python level.
+# @param scan input scan object
+# @param \ref options instance containing options and their values.
+# @return tuple containing scan object and int gates,
+# which is the number of gates the scan should be wrapped with.
+def PadNrays(scan, options):
+    from numpy import vstack
+
+    width = float(options.emitter2[2])
+    gatew = 360.0 / scan.nrays
+    gates = (width / gatew) # / 2  # May as well pad with good margin
+    if (gates - 1) > 0.0:
+        gates = int(gates + 1)
+    else:
+        gates = int(gates)
+
+    newscan = _polarscan.new()
+
+    dbzh = scan.getParameter("DBZH")
+    data = dbzh.getData()
+    toprays = data[0:gates,]
+    botrays = data[scan.nrays-gates:,]
+    data = vstack((botrays,data,toprays))
+    dbzh.setData(data)
+    dbzh.quantity = "DBZH"
+    newscan.addParameter(dbzh)
+    newscan.elangle = scan.elangle
+    return newscan, gates
+
+
+## Internal function to unwrap a scan from overlapping rays.
+# @param scan input scan object
+# @param classification input RaveField object containing probability of anomaly
+# @param gates int number of gates the scan has been wrapped with.
+# @return tuple containing scan object and classification, both unpadded
+def UnpadNrays(scan, classification, gates):
+    dbzh = scan.getParameter("DBZH")
+    data = dbzh.getData()
+    data = data[gates:scan.nrays-gates,]
+    dbzh.setData(data)
+
+    qdata = classification.getData()
+    qdata = qdata[gates:scan.nrays-gates,]
+    classification.setData(qdata)
+
+    scan.removeParameter("DBZH")
+    scan.addParameter(dbzh)
+    return scan, classification
 
 
 ## Initialize

@@ -11,6 +11,9 @@ import _ropogenerator
 import os, string
 import _rave
 import _polarscanparam
+import _polarscan
+import _ravefield
+import ropo_realtime
 
 class PyRopoGeneratorTest(unittest.TestCase):
   PVOL_TESTFILE="fixtures/pvol_seang_20090501T120000Z.h5"
@@ -236,12 +239,47 @@ class PyRopoGeneratorTest(unittest.TestCase):
     self.assertTrue(string.find(d.getAttribute("how/task_args"), "EMITTER:") >= 0)
     self.assertTrue(string.find(d.getAttribute("how/task_args"), "SPECK:") == -1)
 
+  def testPadding(self):
+      import numpy
+
+      scan = _polarscan.new()
+      dbzh = _polarscanparam.new()
+      dbzh.quantity = "DBZH"
+      l = []
+      for i in range(360):
+          l.append([i,i,i])
+
+      data = numpy.array(l).astype(numpy.uint16)
+      dbzh.setData(data)
+      scan.addParameter(dbzh)
+      dbzh.quantity = "TH"
+      scan.addParameter(dbzh)
+
+      options = ropo_realtime.options()
+      options.emitter2 = (-10, 3, 3)  # default
+
+      newscan, gates = ropo_realtime.PadNrays(scan, options)
+      newdata = newscan.getParameter("DBZH").getData()
+
+      # Test data wrapping       
+      self.assertEquals(newdata[:4].tolist(), data[356:,].tolist())
+      self.assertEquals(newdata[364:,].tolist(), data[:4,].tolist())
+
+      classification = _ravefield.new()
+      classification.setData(newdata)    # bogus probability of anomaly array
+      unwrapped, classification = ropo_realtime.UnpadNrays(newscan, classification, gates)
+
+      # Test data unwrapping
+      self.assertEquals(unwrapped.getParameter("DBZH").getData().tolist(), 
+                        data.tolist())
+
   # Simple way to ensure that a file is exported properly
   #
   def exportFile(self, object):
     if os.path.isfile(object.filename):
       os.unlink(object.filename)
     object.save()
+
     
 if __name__ == "__main__":
   #import sys;sys.argv = ['', 'Test.testName']

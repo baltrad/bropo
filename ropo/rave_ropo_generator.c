@@ -841,6 +841,7 @@ int RaveRopoGenerator_classify(RaveRopoGenerator_t* self)
   RaveFmiImage_t* markers = NULL;
   FmiImage* fmiProbImage = NULL;
   FmiImage* fmiMarkersImage = NULL;
+  RaveAttribute_t* attribute = NULL;
   int result = 0;
   int probCount = 0;
   int i = 0;
@@ -896,10 +897,26 @@ int RaveRopoGenerator_classify(RaveRopoGenerator_t* self)
   RAVE_OBJECT_RELEASE(self->classification);
   RAVE_OBJECT_RELEASE(self->markers);
   self->classification = RAVE_OBJECT_COPY(probability);
+
+  /* ODIM's rule for representing quality is that 0=lowest, 1=highest quality.
+   * To minimize impact on ropo, invert the quality indicator only. */
+  attribute = RaveAttributeHelp_createDouble("what/gain", -1/255.0);
+  if (attribute == NULL || !RaveFmiImage_addAttribute(self->classification, attribute)) {
+    RAVE_CRITICAL0("Failed to add gain to image");
+    goto done;
+  }
+  RAVE_OBJECT_RELEASE(attribute);
+  attribute = RaveAttributeHelp_createDouble("what/offset", 1.0);
+  if (attribute == NULL || !RaveFmiImage_addAttribute(self->classification, attribute)) {
+    RAVE_CRITICAL0("Failed to add offset to image");
+    goto done;
+  }
+
   self->markers = RAVE_OBJECT_COPY(markers);
 
   result = 1;
 done:
+  RAVE_OBJECT_RELEASE(attribute);
   RAVE_OBJECT_RELEASE(probability);
   RAVE_OBJECT_RELEASE(markers);
   return result;

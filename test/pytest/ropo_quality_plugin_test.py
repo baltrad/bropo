@@ -26,7 +26,6 @@ BeamBlockage tests
 import unittest
 
 import _raveio
-import _beamblockage
 import ropo_quality_plugin
 import rave_quality_plugin
 import os, string

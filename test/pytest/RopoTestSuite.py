@@ -24,9 +24,9 @@ Test suite for bRopo
 @date 2011-08-20
 '''
 import unittest
-
 from FmiImageTest import *
 from PyRopoGeneratorTest import *
+from ropo_quality_plugin_test import *
 
 if __name__ == "__main__":
   unittest.main()

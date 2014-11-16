@@ -40,12 +40,13 @@ class ropo_quality_plugin(rave_quality_plugin):
   
   ##
   # @param obj: A rave object that should be processed.
+  # @param reprocess_quality_flag: Specifies if the quality flag should be reprocessed or not. 
   # @return: The modified object if this quality plugin has performed changes 
   # to the object.
-  def process(self, obj):
+  def process(self, obj, reprocess_quality_flag=True):
     try:
       import ropo_realtime
-      obj = ropo_realtime.generate(obj)
+      obj = ropo_realtime.generate(obj, reprocess_quality_flag)
     except:
       pass
     return obj

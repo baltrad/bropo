@@ -24,20 +24,22 @@ along with RAVE.  If not, see <http://www.gnu.org/licenses/>.
 ## @author Daniel Michelson, SMHI
 ## @date 2011-09-06
 
-import os, time, copy
-import _raveio
-import _fmiimage
-import _ropogenerator
-import _polarvolume
-import _polarscan
-import xml.etree.ElementTree as ET
-import odim_source
 from Proj import rd
 from rave_defines import UTF8
+import _fmiimage
+import _polarscan
+import _polarvolume
+import _raveio
+import _ropogenerator
+import odim_source
+import os
+import time
+import copy
+import xml.etree.ElementTree as ET
 
 
 ## Contains site-specific argument settings 
-CONFIG_FILE = os.path.join(os.path.join(os.path.split(os.path.split(_ropogenerator.__file__)[0])[0], 
+CONFIG_FILE = os.path.join(os.path.join(os.path.split(os.path.split(_ropogenerator.__file__)[0])[0],
                                         'config'), 'ropo_options.xml')
 
 # Guideline command-line arguments when creating this functionality
@@ -47,9 +49,9 @@ CONFIG_FILE = os.path.join(os.path.join(os.path.split(os.path.split(_ropogenerat
 ## Dictionary containing static reflectivity thresholds, one for each month of the year.
 # To be used when initially thresholding reflectivity data.
 # Add and use entries as you please.
-THRESHOLDS = {"COLD"      : ( -6,  -4,  -2,   0,   2,   4,   6,   4,   2,   0,  -2,  -4),
-              "VERY_COLD" : (-12, -10,  -6,  -4,   0,   4,   6,   4,  -4,  -8, -10, -12),
-              "TEMPERATE" : (  0,   2,   4,   6,   8,  10,  10,   8,   6,   4,   2,   0),
+THRESHOLDS = {"COLD"      : (-6, -4, -2, 0, 2, 4, 6, 4, 2, 0, -2, -4),
+              "VERY_COLD" : (-12, -10, -6, -4, 0, 4, 6, 4, -4, -8, -10, -12),
+              "TEMPERATE" : (0, 2, 4, 6, 8, 10, 10, 8, 6, 4, 2, 0),
               "FLAT-10"   : (-10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10),
               "FLAT-24"   : (-24, -24, -24, -24, -24, -24, -24, -24, -24, -24, -24, -24),
               "FLAT-30"   : (-30, -30, -30, -30, -30, -30, -30, -30, -30, -30, -30, -30),
@@ -146,24 +148,24 @@ def process_scan(scan, options):
     param = newscan.getParameter(options.params)
     rg = _ropogenerator.new(image)
     if options.threshold:
-        raw_thresh = int((options.threshold-param.offset) / param.gain)
+        raw_thresh = int((options.threshold - param.offset) / param.gain)
         rg.threshold(raw_thresh)
     if options.speck:
-        a,b = options.speck
-        rg.speck(a,b)
-    if scan.elangle*rd < options.elev:
+        a, b = options.speck
+        rg.speck(a, b)
+    if scan.elangle * rd < options.elev:
         if options.speckNormOld:
-            a,b,c = options.speckNormOld
-            rg.speckNormOld(a,b,c)
+            a, b, c = options.speckNormOld
+            rg.speckNormOld(a, b, c)
         if options.softcut:
-            a,b,c = options.softcut
-            rg.softcut(a,b,c)
+            a, b, c = options.softcut
+            rg.softcut(a, b, c)
         if options.ship:
-            a,b = options.ship
-            rg.ship(a,b)
+            a, b = options.ship
+            rg.ship(a, b)
         if options.emitter2:
-            a,b,c = options.emitter2
-            rg.emitter2(a,b,c)
+            a, b, c = options.emitter2
+            rg.emitter2(a, b, c)
 
     classification = rg.classify().classification.toRaveField()
     if options.restore:
@@ -175,7 +177,7 @@ def process_scan(scan, options):
     dbzh = scan.getParameter("DBZH")
     dbzh.setData(restored.getParameter("DBZH").getData())
     scan.addParameter(dbzh)
-    scan.addQualityField(classification)
+    scan.addOrReplaceQualityField(classification)
     
     return scan
 
@@ -193,9 +195,8 @@ def process_pvol(pvol, options):
     # Get month and use it to determine dBZ threshold, recalling that
     # options.threshold contains the name of the look-up. This is 
     # over-written with the looked-up threshold itself. 
-    month = int(pvol.date[4:6])-1
+    month = int(pvol.date[4:6]) - 1
     options.threshold = THRESHOLDS[options.threshold][month]
-#    options.threshold = THRESHOLDS["DEFAULT"][month]
 
     for a in pvol.getAttributeNames():  # Copy also 'how' attributes at top level of volume, if any
         out.addAttribute(a, pvol.getAttribute(a))
@@ -210,20 +211,33 @@ def process_pvol(pvol, options):
 
 ## Generate - does the real work
 # @param inobj SCAN or PVOL object
+# @param reprocess_quality_flag: Specifies if the quality flag should be reprocessed or not.
 # @return SCAN or PVOL object, with anomalies hopefully identified and removed
-def generate(inobj):
-    if _polarscan.isPolarScan(inobj)==False and _polarvolume.isPolarVolume(inobj)==False:
-        raise IOError, "Input file must be either polar scan or volume."
+def generate(inobj, reprocess_quality_flag=True):
+    if _polarscan.isPolarScan(inobj) == False and _polarvolume.isPolarVolume(inobj) == False:
+      raise IOError, "Input file must be either polar scan or volume."
+
+    if reprocess_quality_flag == False:
+      if _polarscan.isPolarScan(inobj) and inobj.findQualityFieldByHowTask("fi.fmi.ropo.detector.classification"):
+        return inobj
+      elif _polarvolume.isPolarVolume(inobj):
+        allprocessed = True
+        for i in range(inobj.getNumberOfScans()):
+          scan = inobj.getScan(i)
+          if not scan.findQualityFieldByHowTask("fi.fmi.ropo.detector.classification"):
+            allprocessed = False
+            break
+        if allprocessed:
+          return inobj
 
     options = get_options(inobj)  # Gets options/arguments for this radar. Fixes /what/source if required.
-
     if _polarvolume.isPolarVolume(inobj):
-        ret = process_pvol(inobj, options)
+      ret = process_pvol(inobj, options)
     elif _polarscan.isPolarScan(inobj):
-        month = int(inobj.date[4:6])-1
-        options.threshold = THRESHOLDS[options.threshold][month]
-        ret = process_scan(inobj, options)
-        copy_topwhat(inobj, ret)
+      month = int(inobj.date[4:6]) - 1
+      options.threshold = THRESHOLDS[options.threshold][month]
+      ret = process_scan(inobj, options)
+      copy_topwhat(inobj, ret)
 
     return ret
 
@@ -250,9 +264,9 @@ def PadNrays(scan, options):
 
     dbzh = scan.getParameter("DBZH")
     data = dbzh.getData()
-    toprays = data[0:gates,]
-    botrays = data[scan.nrays-gates:,]
-    data = vstack((botrays,data,toprays))
+    toprays = data[0:gates, ]
+    botrays = data[scan.nrays - gates:, ]
+    data = vstack((botrays, data, toprays))
     dbzh.setData(data)
     dbzh.quantity = "DBZH"
     newscan.addParameter(dbzh)
@@ -268,11 +282,11 @@ def PadNrays(scan, options):
 def UnpadNrays(scan, classification, gates):
     dbzh = scan.getParameter("DBZH")
     data = dbzh.getData()
-    data = data[gates:scan.nrays-gates,]
+    data = data[gates:scan.nrays - gates, ]
     dbzh.setData(data)
 
     qdata = classification.getData()
-    qdata = qdata[gates:scan.nrays-gates,]
+    qdata = qdata[gates:scan.nrays - gates, ]
     classification.setData(qdata)
 
     scan.removeParameter("DBZH")

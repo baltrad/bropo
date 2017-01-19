@@ -27,6 +27,8 @@ along with RAVE.  If not, see <http://www.gnu.org/licenses/>.
 from rave_quality_plugin import rave_quality_plugin
 from rave_quality_plugin import QUALITY_CONTROL_MODE_ANALYZE_AND_APPLY
 import _polarvolume
+import rave_pgf_logger
+logger = rave_pgf_logger.create_logger()
 
 class ropo_quality_plugin(rave_quality_plugin):
   ##
@@ -50,5 +52,5 @@ class ropo_quality_plugin(rave_quality_plugin):
       import ropo_realtime
       obj = ropo_realtime.generate(obj, reprocess_quality_flag, quality_control_mode)
     except:
-      pass
+      logger.exception("Failure during processing")
     return obj

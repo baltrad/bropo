@@ -205,7 +205,7 @@ def process_pvol(pvol, options, quality_control_mode=QUALITY_CONTROL_MODE_ANALYZ
 
     for s in range(pvol.getNumberOfScans()):
         scan = pvol.getScan(s)
-        scan = process_scan(scan, options)
+        scan = process_scan(scan, options, quality_control_mode)
         out.addScan(scan)
 
     return out

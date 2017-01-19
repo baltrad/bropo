@@ -36,7 +36,8 @@ import os
 import time
 import copy
 import xml.etree.ElementTree as ET
-
+from rave_quality_plugin import QUALITY_CONTROL_MODE_ANALYZE_AND_APPLY
+from rave_quality_plugin import QUALITY_CONTROL_MODE_ANALYZE
 
 ## Contains site-specific argument settings 
 CONFIG_FILE = os.path.join(os.path.join(os.path.split(os.path.split(_ropogenerator.__file__)[0])[0],
@@ -141,7 +142,7 @@ def copy_topwhat(ino, outo):
 # @param scan input SCAN object
 # @param options variable-length object containing argument names and values
 # @returns scan object containing detected and removed anomalies
-def process_scan(scan, options):
+def process_scan(scan, options, quality_control_mode=QUALITY_CONTROL_MODE_ANALYZE_AND_APPLY):
     newscan, gates = PadNrays(scan, options)
 
     image = _fmiimage.fromRave(newscan, options.params)        
@@ -175,8 +176,9 @@ def process_scan(scan, options):
         
     restored, classification = UnpadNrays(restored, classification, gates)
     dbzh = scan.getParameter("DBZH")
-    dbzh.setData(restored.getParameter("DBZH").getData())
-    scan.addParameter(dbzh)
+    if quality_control_mode != QUALITY_CONTROL_MODE_ANALYZE:
+      dbzh.setData(restored.getParameter("DBZH").getData())
+      scan.addParameter(dbzh)
     scan.addOrReplaceQualityField(classification)
     
     return scan
@@ -186,7 +188,7 @@ def process_scan(scan, options):
 # @param pvol input PVOL object
 # @param options variable-length object containing argument names and values
 # @return PVOL object containing detected and removed anomalies
-def process_pvol(pvol, options):
+def process_pvol(pvol, options, quality_control_mode=QUALITY_CONTROL_MODE_ANALYZE_AND_APPLY):
     import _polarvolume
 
     out = _polarvolume.new()
@@ -213,7 +215,7 @@ def process_pvol(pvol, options):
 # @param inobj SCAN or PVOL object
 # @param reprocess_quality_flag: Specifies if the quality flag should be reprocessed or not.
 # @return SCAN or PVOL object, with anomalies hopefully identified and removed
-def generate(inobj, reprocess_quality_flag=True):
+def generate(inobj, reprocess_quality_flag=True, quality_control_mode=QUALITY_CONTROL_MODE_ANALYZE_AND_APPLY):
     if _polarscan.isPolarScan(inobj) == False and _polarvolume.isPolarVolume(inobj) == False:
       raise IOError, "Input file must be either polar scan or volume."
 
@@ -232,11 +234,11 @@ def generate(inobj, reprocess_quality_flag=True):
 
     options = get_options(inobj)  # Gets options/arguments for this radar. Fixes /what/source if required.
     if _polarvolume.isPolarVolume(inobj):
-      ret = process_pvol(inobj, options)
+      ret = process_pvol(inobj, options, quality_control_mode)
     elif _polarscan.isPolarScan(inobj):
       month = int(inobj.date[4:6]) - 1
       options.threshold = THRESHOLDS[options.threshold][month]
-      ret = process_scan(inobj, options)
+      ret = process_scan(inobj, options, quality_control_mode)
       copy_topwhat(inobj, ret)
 
     return ret

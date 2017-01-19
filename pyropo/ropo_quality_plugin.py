@@ -25,6 +25,7 @@ along with RAVE.  If not, see <http://www.gnu.org/licenses/>.
 # @date 2011-11-07
 
 from rave_quality_plugin import rave_quality_plugin
+from rave_quality_plugin import QUALITY_CONTROL_MODE_ANALYZE_AND_APPLY
 import _polarvolume
 
 class ropo_quality_plugin(rave_quality_plugin):
@@ -44,10 +45,10 @@ class ropo_quality_plugin(rave_quality_plugin):
   # @param arguments: Not used
   # @return: The modified object if this quality plugin has performed changes 
   # to the object.
-  def process(self, obj, reprocess_quality_flag=True, arguments=None):
+  def process(self, obj, reprocess_quality_flag=True, quality_control_mode=QUALITY_CONTROL_MODE_ANALYZE_AND_APPLY, arguments=None):
     try:
       import ropo_realtime
-      obj = ropo_realtime.generate(obj, reprocess_quality_flag)
+      obj = ropo_realtime.generate(obj, reprocess_quality_flag, quality_control_mode)
     except:
       pass
     return obj

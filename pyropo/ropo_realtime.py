@@ -264,7 +264,7 @@ def PadNrays(scan, options):
 
     newscan = _polarscan.new()
 
-    dbzh = scan.getParameter("DBZH")
+    dbzh = scan.getParameter("DBZH").clone()
     data = dbzh.getData()
     toprays = data[0:gates, ]
     botrays = data[scan.nrays - gates:, ]

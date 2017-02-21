@@ -27,10 +27,8 @@ import unittest
 
 import _raveio
 import ropo_quality_plugin
-import rave_quality_plugin
-import os, string
-import _rave
-import numpy
+
+from rave_quality_plugin import QUALITY_CONTROL_MODE_ANALYZE_AND_APPLY, QUALITY_CONTROL_MODE_ANALYZE
 
 class ropo_quality_plugin_test(unittest.TestCase):
   SCAN_FIXTURE = "fixtures/scan_sevil_20100702T113200Z.h5"
@@ -78,11 +76,13 @@ class ropo_quality_plugin_test(unittest.TestCase):
   def test_process_volume(self):
     volume = _raveio.open(self.VOLUME_FIXTURE).object
 
-    result = self.classUnderTest.process(volume)
+    result = self.classUnderTest.process(volume, quality_control_mode=QUALITY_CONTROL_MODE_ANALYZE_AND_APPLY)
     
     for i in range(result.getNumberOfScans()):
       scan = result.getScan(i)
       self.assertTrue(scan.getQualityFieldByHowTask("fi.fmi.ropo.detector.classification") != None)
+      self.assertEquals(result.getScanWithMaxDistance().getParameter('DBZH').getData().shape[0], 361, "Wrong size of data field")
+      self.assertEquals(result.getScanWithMaxDistance().getParameter('DBZH').getData().shape[1], 500, "Wrong size of data field")
 
   def test_process_volume_reprocess_true(self):
     volume = _raveio.open(self.VOLUME_FIXTURE).object
@@ -123,4 +123,15 @@ class ropo_quality_plugin_test(unittest.TestCase):
     self.assertEquals(len(fields), len(fields2))
     for i in range(len(fields)):
       self.assertTrue(fields[i] == fields2[i])
+      
+  def test_process_volume_analyze_only(self):
+    volume = _raveio.open(self.VOLUME_FIXTURE).object
+
+    result = self.classUnderTest.process(volume, quality_control_mode=QUALITY_CONTROL_MODE_ANALYZE)
+    
+    for i in range(result.getNumberOfScans()):
+      scan = result.getScan(i)
+      self.assertTrue(scan.getQualityFieldByHowTask("fi.fmi.ropo.detector.classification") != None)
+      self.assertEquals(result.getScanWithMaxDistance().getParameter('DBZH').getData().shape[0], 361, "Wrong size of data field")
+      self.assertEquals(result.getScanWithMaxDistance().getParameter('DBZH').getData().shape[1], 500, "Wrong size of data field")
 

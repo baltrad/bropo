@@ -22,6 +22,7 @@ along with bRopo.  If not, see <http://www.gnu.org/licenses/>.
  * @author Anders Henja (Swedish Meteorological and Hydrological Institute, SMHI)
  * @date 2011-08-31
  */
+#include "pyropo_compat.h"
 #include "Python.h"
 #include <math.h>
 #include <stdio.h>
@@ -586,11 +587,11 @@ static struct PyMethodDef _pyropogenerator_methods[] =
 /**
  * Returns the specified attribute in the fmi image
  */
-static PyObject* _pyropogenerator_getattr(PyRopoGenerator* self, char* name)
+static PyObject* _pyropogenerator_getattro(PyRopoGenerator* self, PyObject* name)
 {
   PyObject* res = NULL;
 
-  if (strcmp("classification", name) == 0) {
+  if (PY_COMPARE_STRING_WITH_ATTRO_NAME("classification", name) == 0) {
 	RaveFmiImage_t* image = NULL;
     image = RaveRopoGenerator_getClassification(self->generator);
     if (image == NULL) {
@@ -599,7 +600,7 @@ static PyObject* _pyropogenerator_getattr(PyRopoGenerator* self, char* name)
     res = (PyObject*)PyFmiImage_New(image,0,0);
     RAVE_OBJECT_RELEASE(image);
     return res;
-  } else if (strcmp("markers", name) == 0) {
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("markers", name) == 0) {
 	RaveFmiImage_t* image = NULL;
 	image = RaveRopoGenerator_getMarkers(self->generator);
 	if (image == NULL) {
@@ -609,27 +610,20 @@ static PyObject* _pyropogenerator_getattr(PyRopoGenerator* self, char* name)
 	RAVE_OBJECT_RELEASE(image);
 	return res;
   }
-
-  res = Py_FindMethod(_pyropogenerator_methods, (PyObject*) self, name);
-  if (res)
-    return res;
-
-  PyErr_Clear();
-  PyErr_SetString(PyExc_AttributeError, name);
-  return NULL;
+  return PyObject_GenericGetAttr((PyObject*)self, name);
 }
 
 /**
  * Returns the specified attribute in the polar volume
  */
-static int _pyropogenerator_setattr(PyRopoGenerator* self, char* name, PyObject* val)
+static int _pyropogenerator_setattro(PyRopoGenerator* self, PyObject* name, PyObject* val)
 {
   int result = -1;
   if (name == NULL) {
     goto done;
   }
 
-  raiseException_gotoTag(done, PyExc_AttributeError, name);
+  raiseException_gotoTag(done, PyExc_AttributeError, PY_RAVE_ATTRO_NAME_TO_STRING(name));
 
   result = 0;
 done:
@@ -644,21 +638,47 @@ done:
 /*@{ Type definitions */
 PyTypeObject PyRopoGenerator_Type =
 {
-  PyObject_HEAD_INIT(NULL)0, /*ob_size*/
+  PyVarObject_HEAD_INIT(NULL, 0) /*ob_size*/
   "RopoGeneratorCore", /*tp_name*/
   sizeof(PyRopoGenerator), /*tp_size*/
   0, /*tp_itemsize*/
   /* methods */
   (destructor)_pyropogenerator_dealloc, /*tp_dealloc*/
   0, /*tp_print*/
-  (getattrfunc)_pyropogenerator_getattr, /*tp_getattr*/
-  (setattrfunc)_pyropogenerator_setattr, /*tp_setattr*/
-  0, /*tp_compare*/
-  0, /*tp_repr*/
-  0, /*tp_as_number */
+  (getattrfunc)0,               /*tp_getattr*/
+  (setattrfunc)0,               /*tp_setattr*/
+  0,                            /*tp_compare*/
+  0,                            /*tp_repr*/
+  0,                            /*tp_as_number */
   0,
-  0, /*tp_as_mapping */
-  0 /*tp_hash*/
+  0,                            /*tp_as_mapping */
+  0,                            /*tp_hash*/
+  (ternaryfunc)0,               /*tp_call*/
+  (reprfunc)0,                  /*tp_str*/
+  (getattrofunc)_pyropogenerator_getattro, /*tp_getattro*/
+  (setattrofunc)_pyropogenerator_setattro, /*tp_setattro*/
+  0,                            /*tp_as_buffer*/
+  Py_TPFLAGS_DEFAULT, /*tp_flags*/
+  0,                            /*tp_doc*/
+  (traverseproc)0,              /*tp_traverse*/
+  (inquiry)0,                   /*tp_clear*/
+  0,                            /*tp_richcompare*/
+  0,                            /*tp_weaklistoffset*/
+  0,                            /*tp_iter*/
+  0,                            /*tp_iternext*/
+  _pyropogenerator_methods,              /*tp_methods*/
+  0,                            /*tp_members*/
+  0,                            /*tp_getset*/
+  0,                            /*tp_base*/
+  0,                            /*tp_dict*/
+  0,                            /*tp_descr_get*/
+  0,                            /*tp_descr_set*/
+  0,                            /*tp_dictoffset*/
+  0,                            /*tp_init*/
+  0,                            /*tp_alloc*/
+  0,                            /*tp_new*/
+  0,                            /*tp_free*/
+  0,                            /*tp_is_gc*/
 };
 /*@} End of Type definitions */
 
@@ -890,35 +910,38 @@ static PyMethodDef functions[] = {
   {NULL,NULL} /*Sentinel*/
 };
 
-PyMODINIT_FUNC
-init_ropogenerator(void)
+MOD_INIT(_ropogenerator)
 {
   PyObject *module=NULL,*dictionary=NULL;
   static void *PyRopoGenerator_API[PyRopoGenerator_API_pointers];
   PyObject *c_api_object = NULL;
-  PyRopoGenerator_Type.ob_type = &PyType_Type;
 
-  module = Py_InitModule("_ropogenerator", functions);
+  MOD_INIT_SETUP_TYPE(PyRopoGenerator_Type, &PyType_Type);
+
+  MOD_INIT_VERIFY_TYPE_READY(&PyRopoGenerator_Type);
+
+  MOD_INIT_DEF(module, "_ropogenerator", NULL/*doc*/, functions);
   if (module == NULL) {
-    return;
+    return MOD_INIT_ERROR;
   }
+
   PyRopoGenerator_API[PyRopoGenerator_Type_NUM] = (void*)&PyRopoGenerator_Type;
   PyRopoGenerator_API[PyRopoGenerator_GetNative_NUM] = (void *)PyRopoGenerator_GetNative;
   PyRopoGenerator_API[PyRopoGenerator_New_NUM] = (void*)PyRopoGenerator_New;
 
-  c_api_object = PyCObject_FromVoidPtr((void *)PyRopoGenerator_API, NULL);
 
-  if (c_api_object != NULL) {
-    PyModule_AddObject(module, "_C_API", c_api_object);
-  }
-
+  c_api_object = PyCapsule_New(PyRopoGenerator_API, PyRopoGenerator_CAPSULE_NAME, NULL);
   dictionary = PyModule_GetDict(module);
-  ErrorObject = PyString_FromString("_ropogenerator.error");
+  PyDict_SetItemString(dictionary, "_C_API", c_api_object);
 
+  ErrorObject = PyErr_NewException("_ropogenerator.error", NULL, NULL);
   if (ErrorObject == NULL || PyDict_SetItemString(dictionary, "error", ErrorObject) != 0) {
     Py_FatalError("Can't define _ropogenerator.error");
+    return MOD_INIT_ERROR;
   }
+
   import_fmiimage();
   PYRAVE_DEBUG_INITIALIZE;
+  return MOD_INIT_SUCCESS(module);
 }
 /*@} End of Module setup */

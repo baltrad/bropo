@@ -46,6 +46,8 @@ typedef struct {
 
 #define PyRopoGenerator_API_pointers 3                          /**< number of type and function pointers */
 
+#define PyRopoGenerator_CAPSULE_NAME "_fmiimage._C_API"
+
 #ifdef PYROPOGENERATOR_MODULE
 /** Forward declaration of type */
 extern PyTypeObject PyRopoGenerator_Type;
@@ -85,34 +87,15 @@ static void **PyRopoGenerator_API;
  * Checks if the object is a python fmi image.
  */
 #define PyRopoGenerator_Check(op) \
-   ((op)->ob_type == (PyTypeObject *)PyRopoGenerator_API[PyRopoGenerator_Type_NUM])
+  (Py_TYPE(op) == &PyRopoGenerator_Type)
+
+#define PyRopoGenerator_Type (*(PyTypeObject*)PyRopoGenerator_API[PyRopoGenerator_Type_NUM])
 
 /**
  * Imports the PyRopoGenerator module (like import _ropogenerator in python).
  */
-static int
-import_ropogenerator(void)
-{
-  PyObject *module;
-  PyObject *c_api_object;
-
-  module = PyImport_ImportModule("_ropogenerator");
-  if (module == NULL) {
-    return -1;
-  }
-
-  c_api_object = PyObject_GetAttrString(module, "_C_API");
-  if (c_api_object == NULL) {
-    Py_DECREF(module);
-    return -1;
-  }
-  if (PyCObject_Check(c_api_object)) {
-    PyRopoGenerator_API = (void **)PyCObject_AsVoidPtr(c_api_object);
-  }
-  Py_DECREF(c_api_object);
-  Py_DECREF(module);
-  return 0;
-}
+#define import_ropogenerator() \
+		PyRopoGenerator_API = (void **)PyCapsule_Import(PyRopoGenerator_CAPSULE_NAME, 1);
 
 #endif
 

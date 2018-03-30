@@ -37,13 +37,13 @@ class PyRopoGeneratorTest(unittest.TestCase):
   
   def testNew(self):
     a = _ropogenerator.new()
-    self.assertNotEqual(-1, string.find(`type(a)`, "RopoGeneratorCore"))
+    self.assertNotEqual(-1, str(type(a)).find("RopoGeneratorCore"))
     self.assertTrue(None==a.getImage())
 
   def testNew_withImage(self):
     image = _fmiimage.fromRave(_raveio.open(self.PVOL_TESTFILE).object.getScan(0), "DBZH")
     a = _ropogenerator.new(image)
-    self.assertNotEqual(-1, string.find(`type(a)`, "RopoGeneratorCore"))
+    self.assertNotEqual(-1, str(type(a)).find("RopoGeneratorCore"))
     self.assertTrue(image==a.getImage())
   
   def testSetImage(self):
@@ -131,46 +131,46 @@ class PyRopoGeneratorTest(unittest.TestCase):
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
     b.speck(-20, 5).emitter(3,6).classify()
     
-    self.assertEquals("fi.fmi.ropo.detector.classification", b.classification.getAttribute("how/task"))
-    self.assertTrue(string.find(b.classification.getAttribute("how/task_args"), "SPECK:") >= 0)
-    self.assertTrue(string.find(b.classification.getAttribute("how/task_args"), "EMITTER:") >= 0)
+    self.assertEqual("fi.fmi.ropo.detector.classification", b.classification.getAttribute("how/task"))
+    self.assertTrue(b.classification.getAttribute("how/task_args").find("SPECK:") >= 0)
+    self.assertTrue(b.classification.getAttribute("how/task_args").find("EMITTER:") >= 0)
 
-    self.assertEquals("fi.fmi.ropo.detector.classification_marker", b.markers.getAttribute("how/task"))
-    self.assertTrue(string.find(b.markers.getAttribute("how/task_args"), "SPECK:") >= 0)
-    self.assertTrue(string.find(b.markers.getAttribute("how/task_args"), "EMITTER:") >= 0)
+    self.assertEqual("fi.fmi.ropo.detector.classification_marker", b.markers.getAttribute("how/task"))
+    self.assertTrue(b.markers.getAttribute("how/task_args").find("SPECK:") >= 0)
+    self.assertTrue(b.markers.getAttribute("how/task_args").find("EMITTER:") >= 0)
 
   def testClassify_reclassification(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
     b.speck(-20, 5).emitter(3,6).classify()
     
-    self.assertEquals("fi.fmi.ropo.detector.classification", b.classification.getAttribute("how/task"))
-    self.assertTrue(string.find(b.classification.getAttribute("how/task_args"), "SPECK:") >= 0)
-    self.assertTrue(string.find(b.classification.getAttribute("how/task_args"), "EMITTER:") >= 0)
+    self.assertEqual("fi.fmi.ropo.detector.classification", b.classification.getAttribute("how/task"))
+    self.assertTrue(b.classification.getAttribute("how/task_args").find("SPECK:") >= 0)
+    self.assertTrue(b.classification.getAttribute("how/task_args").find("EMITTER:") >= 0)
 
-    self.assertEquals("fi.fmi.ropo.detector.classification_marker", b.markers.getAttribute("how/task"))
-    self.assertTrue(string.find(b.markers.getAttribute("how/task_args"), "SPECK:") >= 0)
-    self.assertTrue(string.find(b.markers.getAttribute("how/task_args"), "EMITTER:") >= 0)
+    self.assertEqual("fi.fmi.ropo.detector.classification_marker", b.markers.getAttribute("how/task"))
+    self.assertTrue(b.markers.getAttribute("how/task_args").find("SPECK:") >= 0)
+    self.assertTrue(b.markers.getAttribute("how/task_args").find("EMITTER:") >= 0)
 
     b.clutter(-5, 5).classify()
-    self.assertEquals("fi.fmi.ropo.detector.classification", b.classification.getAttribute("how/task"))
-    self.assertTrue(string.find(b.classification.getAttribute("how/task_args"), "SPECK:") >= 0)
-    self.assertTrue(string.find(b.classification.getAttribute("how/task_args"), "EMITTER:") >= 0)
-    self.assertTrue(string.find(b.classification.getAttribute("how/task_args"), "CLUTTER:") >= 0)
+    self.assertEqual("fi.fmi.ropo.detector.classification", b.classification.getAttribute("how/task"))
+    self.assertTrue(b.classification.getAttribute("how/task_args").find("SPECK:") >= 0)
+    self.assertTrue(b.classification.getAttribute("how/task_args").find("EMITTER:") >= 0)
+    self.assertTrue(b.classification.getAttribute("how/task_args").find("CLUTTER:") >= 0)
 
   def testDeclassify(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
     b.speck(-20, 5).emitter(3,6).classify().declassify()
     
-    self.assertEquals(0, b.getProbabilityFieldCount())
-    self.assertEquals("fi.fmi.ropo.detector.classification", b.classification.getAttribute("how/task"))
-    self.assertTrue(string.find(b.classification.getAttribute("how/task_args"), "SPECK:") == -1)
-    self.assertTrue(string.find(b.classification.getAttribute("how/task_args"), "EMITTER:") == -1)
+    self.assertEqual(0, b.getProbabilityFieldCount())
+    self.assertEqual("fi.fmi.ropo.detector.classification", b.classification.getAttribute("how/task"))
+    self.assertTrue(b.classification.getAttribute("how/task_args").find("SPECK:") == -1)
+    self.assertTrue(b.classification.getAttribute("how/task_args").find("EMITTER:") == -1)
 
-    self.assertEquals("fi.fmi.ropo.detector.classification_marker", b.markers.getAttribute("how/task"))
-    self.assertTrue(string.find(b.markers.getAttribute("how/task_args"), "SPECK:") == -1)
-    self.assertTrue(string.find(b.markers.getAttribute("how/task_args"), "EMITTER:") == -1)
+    self.assertEqual("fi.fmi.ropo.detector.classification_marker", b.markers.getAttribute("how/task"))
+    self.assertTrue(b.markers.getAttribute("how/task_args").find("SPECK:") == -1)
+    self.assertTrue(b.markers.getAttribute("how/task_args").find("EMITTER:") == -1)
 
   def testGenerator_generateClassification(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
@@ -222,22 +222,22 @@ class PyRopoGeneratorTest(unittest.TestCase):
     b.speck(-20, 5).restoreSelf(50)
     result = b.getImage()
     self.assertTrue(result != oldimg)
-    self.assertEquals("fi.fmi.ropo.restore", result.getAttribute("how/task"))
-    self.assertTrue(string.find(result.getAttribute("how/task_args"), "SPECK:") >= 0)
+    self.assertEqual("fi.fmi.ropo.restore", result.getAttribute("how/task"))
+    self.assertTrue(result.getAttribute("how/task_args").find("SPECK:") >= 0)
 
   def testGetProbabilityFieldCount(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
 
-    self.assertEquals(0, b.getProbabilityFieldCount())
+    self.assertEqual(0, b.getProbabilityFieldCount())
     b.speck(-20, 5).emitter(-20, 4)
-    self.assertEquals(2, b.getProbabilityFieldCount())
+    self.assertEqual(2, b.getProbabilityFieldCount())
     c = b.getProbabilityField(0)
     d = b.getProbabilityField(1)
-    self.assertTrue(string.find(c.getAttribute("how/task_args"), "SPECK:") >= 0)
-    self.assertTrue(string.find(c.getAttribute("how/task_args"), "EMITTER:") == -1)
-    self.assertTrue(string.find(d.getAttribute("how/task_args"), "EMITTER:") >= 0)
-    self.assertTrue(string.find(d.getAttribute("how/task_args"), "SPECK:") == -1)
+    self.assertTrue(c.getAttribute("how/task_args").find("SPECK:") >= 0)
+    self.assertTrue(c.getAttribute("how/task_args").find("EMITTER:") == -1)
+    self.assertTrue(d.getAttribute("how/task_args").find("EMITTER:") >= 0)
+    self.assertTrue(d.getAttribute("how/task_args").find("SPECK:") == -1)
 
   def testPadding(self):
       import numpy
@@ -262,15 +262,15 @@ class PyRopoGeneratorTest(unittest.TestCase):
       newdata = newscan.getParameter("DBZH").getData()
 
       # Test data wrapping       
-      self.assertEquals(newdata[:4].tolist(), data[356:,].tolist())
-      self.assertEquals(newdata[364:,].tolist(), data[:4,].tolist())
+      self.assertEqual(newdata[:4].tolist(), data[356:,].tolist())
+      self.assertEqual(newdata[364:,].tolist(), data[:4,].tolist())
 
       classification = _ravefield.new()
       classification.setData(newdata)    # bogus probability of anomaly array
       unwrapped, classification = ropo_realtime.UnpadNrays(newscan, classification, gates)
 
       # Test data unwrapping
-      self.assertEquals(unwrapped.getParameter("DBZH").getData().tolist(), 
+      self.assertEqual(unwrapped.getParameter("DBZH").getData().tolist(), 
                         data.tolist())
 
   # Simple way to ensure that a file is exported properly

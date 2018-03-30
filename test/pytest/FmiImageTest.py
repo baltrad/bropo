@@ -33,45 +33,45 @@ class FmiImageTest(unittest.TestCase):
   def testAttributes(self):
     a = _fmiimage.new()
     names = a.getAttributeNames()
-    self.assertEquals(0, len(names))
+    self.assertEqual(0, len(names))
     a.addAttribute("how/slask", 10)
-    self.assertEquals(10, a.getAttribute("how/slask"))
+    self.assertEqual(10, a.getAttribute("how/slask"))
     names = a.getAttributeNames()
-    self.assertEquals(1, len(names))
+    self.assertEqual(1, len(names))
     self.assertTrue("how/slask" in names)
 
   def testFromRave_scan(self):
     a = _raveio.open(self.PVOL_TESTFILE)
     scan = a.object.getScan(0)
     b = _fmiimage.fromRave(scan)
-    self.assertNotEqual(-1, string.find(`type(b)`, "FmiImageCore"))
+    self.assertNotEqual(-1, str(type(b)).find("FmiImageCore"))
     self.assertAlmostEqual(scan.getParameter("DBZH").offset, b.offset, 4)
     self.assertAlmostEqual(scan.getParameter("DBZH").gain, b.gain, 4)
 
   def testFromRave_withQuantity_scan(self):
     a = _raveio.open(self.PVOL_TESTFILE)
     b = _fmiimage.fromRave(a.object.getScan(0), "DBZH")
-    self.assertNotEqual(-1, string.find(`type(b)`, "FmiImageCore"))
+    self.assertNotEqual(-1, str(type(b)).find("FmiImageCore"))
 
   def testFromRave_volume(self):
     a = _raveio.open(self.PVOL_TESTFILE)
     b = _fmiimage.fromRave(a.object)
-    self.assertNotEqual(-1, string.find(`type(b)`, "FmiImageCore"))
+    self.assertNotEqual(-1, str(type(b)).find("FmiImageCore"))
 
   def testFromRave_withQuantity_volume(self):
     a = _raveio.open(self.PVOL_TESTFILE)
     b = _fmiimage.fromRave(a.object, "DBZH")
-    self.assertNotEqual(-1, string.find(`type(b)`, "FmiImageCore"))
+    self.assertNotEqual(-1, str(type(b)).find("FmiImageCore"))
 
   def testFromRaveVolume(self):
     a = _raveio.open(self.PVOL_TESTFILE)
     b = _fmiimage.fromRaveVolume(a.object, 0)
-    self.assertNotEqual(-1, string.find(`type(b)`, "FmiImageCore"))
+    self.assertNotEqual(-1, str(type(b)).find("FmiImageCore"))
 
   def testFromRaveVolume_withQuantity(self):
     a = _raveio.open(self.PVOL_TESTFILE)
     b = _fmiimage.fromRaveVolume(a.object, 0, "DBZH")
-    self.assertNotEqual(-1, string.find(`type(b)`, "FmiImageCore"))
+    self.assertNotEqual(-1, str(type(b)).find("FmiImageCore"))
 
   def testToPolarScan(self):
     a = _raveio.open(self.PVOL_TESTFILE).object
@@ -84,7 +84,7 @@ class FmiImageTest(unittest.TestCase):
     a = _raveio.open(self.PVOL_TESTFILE).object
     b = _fmiimage.fromRave(a.getScan(0), "DBZH")
     c = b.toRaveField()
-    self.assertNotEqual(-1, string.find(`type(c)`, "RaveFieldCore"))
+    self.assertNotEqual(-1, str(type(c)).find("RaveFieldCore"))
     
 if __name__ == "__main__":
   #import sys;sys.argv = ['', 'Test.testName']

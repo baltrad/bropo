@@ -42,8 +42,8 @@ class ropo_quality_plugin_test(unittest.TestCase):
 
   def test_getQualityFields(self):
     result = self.classUnderTest.getQualityFields()
-    self.assertEquals(1, len(result))
-    self.assertEquals("fi.fmi.ropo.detector.classification", result[0])
+    self.assertEqual(1, len(result))
+    self.assertEqual("fi.fmi.ropo.detector.classification", result[0])
   
   def test_process_scan(self):
     scan = _raveio.open(self.SCAN_FIXTURE).object
@@ -81,8 +81,8 @@ class ropo_quality_plugin_test(unittest.TestCase):
     for i in range(result.getNumberOfScans()):
       scan = result.getScan(i)
       self.assertTrue(scan.getQualityFieldByHowTask("fi.fmi.ropo.detector.classification") != None)
-      self.assertEquals(result.getScanWithMaxDistance().getParameter('DBZH').getData().shape[0], 361, "Wrong size of data field")
-      self.assertEquals(result.getScanWithMaxDistance().getParameter('DBZH').getData().shape[1], 500, "Wrong size of data field")
+      self.assertEqual(result.getScanWithMaxDistance().getParameter('DBZH').getData().shape[0], 361, "Wrong size of data field")
+      self.assertEqual(result.getScanWithMaxDistance().getParameter('DBZH').getData().shape[1], 500, "Wrong size of data field")
 
   def test_process_volume_reprocess_true(self):
     volume = _raveio.open(self.VOLUME_FIXTURE).object
@@ -100,7 +100,7 @@ class ropo_quality_plugin_test(unittest.TestCase):
       fields2.append(result.getScan(i).getQualityFieldByHowTask("fi.fmi.ropo.detector.classification"))
     
     self.assertTrue(len(fields) != 0)
-    self.assertEquals(len(fields), len(fields2))
+    self.assertEqual(len(fields), len(fields2))
     for i in range(len(fields)):
       self.assertTrue(fields[i] != fields2[i])
 
@@ -120,7 +120,7 @@ class ropo_quality_plugin_test(unittest.TestCase):
       fields2.append(result.getScan(i).getQualityFieldByHowTask("fi.fmi.ropo.detector.classification"))
     
     self.assertTrue(len(fields) != 0)
-    self.assertEquals(len(fields), len(fields2))
+    self.assertEqual(len(fields), len(fields2))
     for i in range(len(fields)):
       self.assertTrue(fields[i] == fields2[i])
       
@@ -132,6 +132,6 @@ class ropo_quality_plugin_test(unittest.TestCase):
     for i in range(result.getNumberOfScans()):
       scan = result.getScan(i)
       self.assertTrue(scan.getQualityFieldByHowTask("fi.fmi.ropo.detector.classification") != None)
-      self.assertEquals(result.getScanWithMaxDistance().getParameter('DBZH').getData().shape[0], 361, "Wrong size of data field")
-      self.assertEquals(result.getScanWithMaxDistance().getParameter('DBZH').getData().shape[1], 500, "Wrong size of data field")
+      self.assertEqual(result.getScanWithMaxDistance().getParameter('DBZH').getData().shape[0], 361, "Wrong size of data field")
+      self.assertEqual(result.getScanWithMaxDistance().getParameter('DBZH').getData().shape[1], 500, "Wrong size of data field")
 

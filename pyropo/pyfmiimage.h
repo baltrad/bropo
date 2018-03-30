@@ -26,6 +26,7 @@ along with bRopo.  If not, see <http://www.gnu.org/licenses/>.
 #define PYFMIIMAGE_H
 #include "rave_fmi_image.h"
 
+
 /**
  * The fmi image object
  */
@@ -46,7 +47,10 @@ typedef struct {
 
 #define PyFmiImage_API_pointers 3                          /**< number of type and function pointers */
 
+#define PyFmiImage_CAPSULE_NAME "_fmiimage._C_API"
+
 #ifdef PYFMIIMAGE_MODULE
+
 /** Forward declaration of type */
 extern PyTypeObject PyFmiImage_Type;
 
@@ -64,7 +68,7 @@ static PyFmiImage_New_RETURN PyFmiImage_New PyFmiImage_New_PROTO;
 static void **PyFmiImage_API;
 
 /**
- * Returns a pointer to the internal fmi image, remember to release the reference
+ * Returns a pointer to the internal composite, remember to release the reference
  * when done with the object. (RAVE_OBJECT_RELEASE).
  */
 #define PyFmiImage_GetNative \
@@ -86,34 +90,16 @@ static void **PyFmiImage_API;
  * Checks if the object is a python fmi image.
  */
 #define PyFmiImage_Check(op) \
-   ((op)->ob_type == (PyTypeObject *)PyFmiImage_API[PyFmiImage_Type_NUM])
+   (Py_TYPE(op) == &PyFmiImage_Type)
+
+
+#define PyFmiImage_Type (*(PyTypeObject*)PyFmiImage_API[PyFmiImage_Type_NUM])
 
 /**
- * Imports the PyFmiImage module (like import _fmiimage in python).
+ * Imports the PyArea module (like import _area in python).
  */
-static int
-import_fmiimage(void)
-{
-  PyObject *module;
-  PyObject *c_api_object;
-
-  module = PyImport_ImportModule("_fmiimage");
-  if (module == NULL) {
-    return -1;
-  }
-
-  c_api_object = PyObject_GetAttrString(module, "_C_API");
-  if (c_api_object == NULL) {
-    Py_DECREF(module);
-    return -1;
-  }
-  if (PyCObject_Check(c_api_object)) {
-    PyFmiImage_API = (void **)PyCObject_AsVoidPtr(c_api_object);
-  }
-  Py_DECREF(c_api_object);
-  Py_DECREF(module);
-  return 0;
-}
+#define import_fmiimage() \
+    PyFmiImage_API = (void **)PyCapsule_Import(PyFmiImage_CAPSULE_NAME, 1);
 
 #endif
 

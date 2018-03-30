@@ -217,7 +217,7 @@ def process_pvol(pvol, options, quality_control_mode=QUALITY_CONTROL_MODE_ANALYZ
 # @return SCAN or PVOL object, with anomalies hopefully identified and removed
 def generate(inobj, reprocess_quality_flag=True, quality_control_mode=QUALITY_CONTROL_MODE_ANALYZE_AND_APPLY):
     if _polarscan.isPolarScan(inobj) == False and _polarvolume.isPolarVolume(inobj) == False:
-      raise IOError, "Input file must be either polar scan or volume."
+      raise IOError("Input file must be either polar scan or volume.")
 
     if reprocess_quality_flag == False:
       if _polarscan.isPolarScan(inobj) and inobj.findQualityFieldByHowTask("fi.fmi.ropo.detector.classification"):

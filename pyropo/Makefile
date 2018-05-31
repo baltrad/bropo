@@ -69,11 +69,11 @@ $(ROPO_TARGET): $(DEPDIR) $(ROPO_OBJECTS) ../ropo/libbropo.so
 
 .PHONY=install
 install:
-	@mkdir -p ${prefix}/share/bropo/pyropo
-	@cp -v -f $(FMIIMAGE_TARGET) ${prefix}/share/bropo/pyropo
-	@cp -v -f $(ROPO_TARGET) ${prefix}/share/bropo/pyropo
-	@cp -v -f *.py ${prefix}/share/bropo/pyropo
-	@-echo "$(prefix)/share/bropo/pyropo" > "$(SITEPACK_PYTHON)/pyropo.pth"
+	@mkdir -p ${DESTDIR}${prefix}/share/bropo/pyropo
+	@cp -v -f $(FMIIMAGE_TARGET) ${DESTDIR}${prefix}/share/bropo/pyropo
+	@cp -v -f $(ROPO_TARGET) ${DESTDIR}${prefix}/share/bropo/pyropo
+	@cp -v -f *.py ${DESTDIR}${prefix}/share/bropo/pyropo
+	@-echo "$(prefix)/share/bropo/pyropo" > "${DESTDIR}$(SITEPACK_PYTHON)/pyropo.pth"
 
 .PHONY=clean
 clean:

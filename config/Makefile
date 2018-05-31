@@ -33,5 +33,5 @@ clean:
 
 .PHONY: install
 install:
-	@mkdir -p ${prefix}/share/bropo/config
-	@cp -v -f *.xml ${prefix}/share/bropo/config
+	@mkdir -p ${DESTDIR}${prefix}/share/bropo/config
+	@cp -v -f *.xml ${DESTDIR}${prefix}/share/bropo/config

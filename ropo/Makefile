@@ -63,7 +63,7 @@ install:
 	@mkdir -p ${DESTDIR}${prefix}/include/
 	@mkdir -p ${DESTDIR}${prefix}/lib/
 	@cp -v -f *.h ${DESTDIR}${prefix}/include/
-	@cp -v -f ${DESTDIR}$(TARGET) ${prefix}/lib/
+	@cp -v -f $(TARGET) ${DESTDIR}${prefix}/lib/
 
 .PHONY=clean
 clean:

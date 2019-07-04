@@ -308,7 +308,7 @@ class PyRopoGeneratorTest(unittest.TestCase):
     
     result16bit=result16bit.astype(numpy.uint8)
     
-    self.assertTrue(numpy.array_equal(result8bit,result16bit))
+    self.assertTrue(numpy.array_equal(result8bit.astype(numpy.int16),result16bit.astype(numpy.int16)))
 
   def testChainCompare_8bit_and_16bit_Restore2(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
@@ -333,7 +333,7 @@ class PyRopoGeneratorTest(unittest.TestCase):
     # Averaging might be different since the procedure is different for determining mean. atol means that avg different should be max 3
     # Verifications is done as absolute(a - b) <= (atol + rtol * absolute(b)) which means that this verifies that
     # abs(8bit - 16bit) is < 3 
-    self.assertTrue(numpy.allclose(result8bit, result16bit, atol=3.0, rtol=0.0))
+    self.assertTrue(numpy.allclose(result8bit.astype(numpy.int16), result16bit.astype(numpy.int16), atol=3.0, rtol=0.0)) # If not having values in short range, there might be wrap around. E.g. -1 => 255 which is out of range 3
   
   # Simple way to ensure that a file is exported properly
   #

@@ -334,6 +334,29 @@ class PyRopoGeneratorTest(unittest.TestCase):
     # Verifications is done as absolute(a - b) <= (atol + rtol * absolute(b)) which means that this verifies that
     # abs(8bit - 16bit) is < 3 
     self.assertTrue(numpy.allclose(result8bit.astype(numpy.int16), result16bit.astype(numpy.int16), atol=3.0, rtol=0.0)) # If not having values in short range, there might be wrap around. E.g. -1 => 255 which is out of range 3
+
+  def testChainCompare_8bit_and_32bit_Restore(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    result8bit = b.speckNormOld(-20,24,8).emitter2(-30,3,3).softcut(5,170,180).ship(20,8).speck(-30,12).restore(108).toPolarScan().getParameter("DBZH").getData()
+    
+    # Adjust the 8 bit data to be 16 bit instead
+    p = a.getParameter("DBZH")
+    d = p.getData().astype(numpy.int32)
+    p.setData(d)
+    p.undetect = 0.0
+    p.nodata = 255.0
+    a.addParameter(p)
+    
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    result32bit = b.speckNormOld(-20,24,8).emitter2(-30,3,3).softcut(5,170,180).ship(20,8).speck(-30,12).restore(108).toPolarScan().getParameter("DBZH").getData()
+    
+    self.assertEqual(numpy.int32, result32bit.dtype) # Result should be same type as when created
+    
+    result32bit=result32bit.astype(numpy.uint8)
+    
+    self.assertTrue(numpy.array_equal(result8bit.astype(numpy.int32),result32bit.astype(numpy.int32)))
+
   
   # Simple way to ensure that a file is exported properly
   #

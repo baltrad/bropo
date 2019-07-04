@@ -158,13 +158,6 @@ static int RaveFmiImageInternal_scanToFmiImage(PolarScan_t* scan, const char* qu
     RAVE_WARNING1("Failed to extract parameter %s from scan", quantity);
     goto done;
   }
-  if (PolarScanParam_getDataType(param) != RaveDataType_CHAR &&
-      PolarScanParam_getDataType(param) != RaveDataType_UCHAR &&
-      PolarScanParam_getDataType(param) != RaveDataType_SHORT &&
-      PolarScanParam_getDataType(param) != RaveDataType_USHORT) {
-    RAVE_WARNING0("FmiImages can only support 8 and 16-bit data");
-    goto done;
-  }
 
   gain = PolarScanParam_getGain(param);
   offset = PolarScanParam_getOffset(param);
@@ -226,13 +219,6 @@ static int RaveFmiImageInternal_fieldToFmiImage(RaveField_t* field, FmiImage* im
   image->channels=1;
   initialize_image(image);
 
-  if (RaveField_getDataType(field) != RaveDataType_CHAR &&
-      RaveField_getDataType(field) != RaveDataType_UCHAR &&
-      RaveField_getDataType(field) != RaveDataType_SHORT &&
-      RaveField_getDataType(field) != RaveDataType_USHORT) {
-    RAVE_WARNING0("FmiImages can only support 8 and 16-bit data");
-    goto done;
-  }
   attr = RaveField_getAttribute(field, "what/gain");
   if (attr != NULL) {
     RaveAttribute_getDouble(attr, &gain);

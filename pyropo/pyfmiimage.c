@@ -187,6 +187,8 @@ static PyObject* _pyfmiimage_fromRave(PyObject* self, PyObject* args)
 
   if (fmiimage != NULL) {
     result = PyFmiImage_New(fmiimage, 0, 0);
+  } else {
+    PyErr_SetString(PyExc_RuntimeError, "Could not convert rave object into fmiimage");
   }
 
   RAVE_OBJECT_RELEASE(fmiimage);
@@ -218,6 +220,8 @@ static PyObject* _pyfmiimage_fromRaveVolume(PyObject* self, PyObject* args)
 
   if (fmiimage != NULL) {
     result = PyFmiImage_New(fmiimage, 0, 0);
+  } else {
+    PyErr_SetString(PyExc_RuntimeError, "Could not convert rave object into fmiimage");
   }
 
   RAVE_OBJECT_RELEASE(fmiimage);

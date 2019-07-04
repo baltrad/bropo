@@ -60,6 +60,13 @@ int RaveFmiImage_initialize(RaveFmiImage_t* self, int width, int height);
 void RaveFmiImage_fill(RaveFmiImage_t* self, unsigned char v);
 
 /**
+ * Fills the original image with the provided value.
+ * @param[in] self - self
+ * @param[in] v - the pixel value to set for all pixels
+ */
+void RaveFmiImage_fillOriginal(RaveFmiImage_t* self, double v);
+
+/**
  * Returns the internal FmiImage.
  * @param[in] self - self
  * @return the internal fmi image (NOTE, THIS IS AN INTERNAL POINTER SO DO NOT RELEASE)
@@ -70,16 +77,18 @@ FmiImage* RaveFmiImage_getImage(RaveFmiImage_t* self);
  * Creates a polar scan from a fmi image
  * @param[in] self - self
  * @param[in] quantity - the quantity to be set for the parameters (may be NULL)
+ * @param[in] datatype - how the data field should be defined. 0 = same as when created, 1 = force unsigned char and use data from 8 bit array, 2 = force unsigned char but use data from original data array
  * @return a polar volume on success otherwise NULL
  */
-PolarScan_t* RaveFmiImage_toPolarScan(RaveFmiImage_t* self, const char* quantity);
+PolarScan_t* RaveFmiImage_toPolarScan(RaveFmiImage_t* self, const char* quantity, int datatype);
 
 /**
  * Creates a rave field from a fmi image
  * @param[in] self - self
+ * @param[in] datatype - how the data field should be defined. 0 = same as when created, 1 = force unsigned char and use data from 8 bit array, 2 = force unsigned char but use data from original data array
  * @return a polar volume on success otherwise NULL
  */
-RaveField_t* RaveFmiImage_toRaveField(RaveFmiImage_t* self);
+RaveField_t* RaveFmiImage_toRaveField(RaveFmiImage_t* self, int datatype);
 
 /**
  * Adds a rave attribute to the image.
@@ -135,6 +144,34 @@ void RaveFmiImage_setOffset(RaveFmiImage_t* self, double offset);
  * @return the offset
  */
 double RaveFmiImage_getOffset(RaveFmiImage_t* self);
+
+/**
+ * Sets the nodata for the data in the image.
+ * @param[in] self - self
+ * @param[in] v - the nodata value
+ */
+void RaveFmiImage_setNodata(RaveFmiImage_t* self, double v);
+
+/**
+ * Returns the nodata for the data in the image
+ * @param[in] self - self
+ * @return the nodata value
+ */
+double RaveFmiImage_getNodata(RaveFmiImage_t* self);
+
+/**
+ * Sets the undetect for the data in the image
+ * @param[in] self - self
+ * @param[in] v - the undetect value
+ */
+void RaveFmiImage_setUndetect(RaveFmiImage_t* self, double v);
+
+/**
+ * Returns the undetect for the data in the image.
+ * @param[in] self - self
+ * @return the undetect value
+ */
+double RaveFmiImage_getUndetect(RaveFmiImage_t* self);
 
 /**
  * Creates a rave fmi image with specified dimension

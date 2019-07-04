@@ -64,6 +64,9 @@ static void RaveFmiVolumeInternal_resetImage(RaveFmiVolume_t* img)
       if (img->image[i].array != NULL) {
         RAVE_FREE(img->image[i].array);
       }
+      if (img->image[i].original != NULL) {
+        RAVE_FREE(img->image[i].original);
+      }
     }
     RAVE_FREE(img->image);
   }

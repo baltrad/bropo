@@ -26,7 +26,7 @@
 #define FMI_IMAGE_VER "fmi_image \t v2.2\t Jul 2002 (c) Markus.Peura@fmi.fi"
 
 #include <stdio.h>
-
+#include "rave_types.h"
 /*
   typedef Coord short int;
   typedef Byte unsigned char;
@@ -125,7 +125,6 @@ typedef unsigned char ColorMap256[256][3];
 
 extern int FMI_IMAGE_COMMENT;
 
-
 struct fmi_image {
 
   /*
@@ -146,6 +145,12 @@ struct fmi_image {
   /* depth ? */
   /* unsigned char **array;*/
   Byte *array;
+
+  RaveDataType original_type;
+  double       original_nodata;
+  double       original_undetect;
+  double       *original; /**< the original data if it was greater than byte */
+
   CoordOverflowHandler coord_overflow_handler_x, coord_overflow_handler_y;
   /*  unsigned char *stream;*/
   char comment_string[MAX_COMMENT_LENGTH];
@@ -192,11 +197,14 @@ int canonize_image(FmiImage *sample,FmiImage *target);
 
 
 Byte get_pixel(FmiImage *img,int x,int y,int channel);
+double get_pixel_orig(FmiImage *img,int x,int y,int channel);
+
 /*#define get_pixel(img,x,y,channel) get(img,x,y,channel)  */
 
 Byte get_pixel_direct(FmiImage *img,int i);
 
 void put_pixel(FmiImage *img,int x,int y,int channel,Byte c);
+void put_pixel_orig(FmiImage *img,int x,int y,int channel, double c);
 /*#define put_pixel(img,x,y,channel,c) put(img,x,y,channel,c)  */
 void put_pixel_direct(FmiImage *img,int address,Byte c);
 void put_pixel_direct_inc(FmiImage *img,int address);
@@ -207,6 +215,7 @@ void put_pixel_or(FmiImage *img,int x,int y,int channel,Byte c);
 void put_pixel_and(FmiImage *img,int x,int y,int channel,Byte c);
 
 void fill_image(FmiImage *img,Byte c);
+void fill_image_orig(FmiImage *img,double c);
 void image_fill_random(FmiImage *img,Byte mean,Byte amplitude);
 void invert_image(FmiImage *img);
 void translate_intensity(FmiImage *img,Byte from,Byte to);

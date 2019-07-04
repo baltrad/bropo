@@ -8,15 +8,17 @@ import unittest
 import _fmiimage
 import _raveio
 import _ropogenerator
-import os, string
+import os, string, sys
 import _rave
 import _polarscanparam
 import _polarscan
 import _ravefield
 import ropo_realtime
+import numpy
 
 class PyRopoGeneratorTest(unittest.TestCase):
   PVOL_TESTFILE="fixtures/pvol_seang_20090501T120000Z.h5"
+  SCAN16_TESTFILE="fixtures/sebaa-scan_0_5_20190613.h5"
   PVOL_RIX_TESTFILE="fixtures/pvol_rix.h5"
   
   TEMPORARY_FILE="ropotest_file1.h5"
@@ -34,7 +36,7 @@ class PyRopoGeneratorTest(unittest.TestCase):
       os.unlink(self.TEMPORARY_FILE)
     if os.path.isfile(self.TEMPORARY_FILE2):
      os.unlink(self.TEMPORARY_FILE2)  
-  
+
   def testNew(self):
     a = _ropogenerator.new()
     self.assertNotEqual(-1, str(type(a)).find("RopoGeneratorCore"))
@@ -60,11 +62,18 @@ class PyRopoGeneratorTest(unittest.TestCase):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
     b.threshold(80)
-  
+
   def testSpeck(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
     b.speck(-20, 5)
+
+  def testSpeck_differentUndetect_restore(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    a.getParameter("DBZH").undetect = 254.0
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    c=b.speck(-20, 5).restore(50).toPolarScan().getParameter("DBZH")
+    self.assertAlmostEqual(254.0, c.undetect, 4)
 
   def testSpeckNormOld(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
@@ -273,6 +282,59 @@ class PyRopoGeneratorTest(unittest.TestCase):
       self.assertEqual(unwrapped.getParameter("DBZH").getData().tolist(), 
                         data.tolist())
 
+  def testSpeck_16bit(self):
+    a = _raveio.open(self.SCAN16_TESTFILE).object
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    c = b.speck(-30,12).restore(108).toRaveField().getData()
+    self.assertEqual(numpy.int16, c.dtype)
+
+  def testChainCompare_8bit_and_16bit_Restore(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    result8bit = b.speckNormOld(-20,24,8).emitter2(-30,3,3).softcut(5,170,180).ship(20,8).speck(-30,12).restore(108).toPolarScan().getParameter("DBZH").getData()
+    
+    # Adjust the 8 bit data to be 16 bit instead
+    p = a.getParameter("DBZH")
+    d = p.getData().astype(numpy.int16)
+    p.setData(d)
+    p.undetect = 0.0
+    p.nodata = 255.0
+    a.addParameter(p)
+    
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    result16bit = b.speckNormOld(-20,24,8).emitter2(-30,3,3).softcut(5,170,180).ship(20,8).speck(-30,12).restore(108).toPolarScan().getParameter("DBZH").getData()
+    
+    self.assertEqual(numpy.int16, result16bit.dtype) # Result should be same type as when created
+    
+    result16bit=result16bit.astype(numpy.uint8)
+    
+    self.assertTrue(numpy.array_equal(result8bit,result16bit))
+
+  def testChainCompare_8bit_and_16bit_Restore2(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    result8bit = b.speckNormOld(-20,24,8).emitter2(-30,3,3).softcut(5,170,180).ship(20,8).speck(-30,12).restore2(108).toPolarScan().getParameter("DBZH").getData()
+    
+    # Adjust the 8 bit data to be 16 bit instead
+    p = a.getParameter("DBZH")
+    d = p.getData().astype(numpy.int16)
+    p.setData(d)
+    p.undetect = 0.0
+    p.nodata = 255.0
+    a.addParameter(p)
+    
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    result16bit = b.speckNormOld(-20,24,8).emitter2(-30,3,3).softcut(5,170,180).ship(20,8).speck(-30,12).restore2(108).toPolarScan().getParameter("DBZH").getData()
+    
+    self.assertEqual(numpy.int16, result16bit.dtype) # Result should be same type as when created
+    
+    result16bit=result16bit.astype(numpy.uint8)
+    
+    # Averaging might be different since the procedure is different for determining mean. atol means that avg different should be max 3
+    # Verifications is done as absolute(a - b) <= (atol + rtol * absolute(b)) which means that this verifies that
+    # abs(8bit - 16bit) is < 3 
+    self.assertTrue(numpy.allclose(result8bit, result16bit, atol=3.0, rtol=0.0))
+  
   # Simple way to ensure that a file is exported properly
   #
   def exportFile(self, object):

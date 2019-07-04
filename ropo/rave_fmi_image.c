@@ -56,6 +56,9 @@ static void RaveFmiImageInternal_resetImage(RaveFmiImage_t* img)
     if (img->image->array != NULL) {
       RAVE_FREE(img->image->array);
     }
+    if (img->image->original != NULL) {
+      RAVE_FREE(img->image->original);
+    }
     RAVE_FREE(img->image);
   }
   img->image = NULL;
@@ -128,6 +131,7 @@ static int RaveFmiImageInternal_scanToFmiImage(PolarScan_t* scan, const char* qu
 {
   int i = 0, j = 0;
   int result = 0;
+  double gain, offset;
   PolarScanParam_t* param = NULL;
   FmiImage* image = NULL;
 
@@ -155,20 +159,42 @@ static int RaveFmiImageInternal_scanToFmiImage(PolarScan_t* scan, const char* qu
     goto done;
   }
   if (PolarScanParam_getDataType(param) != RaveDataType_CHAR &&
-      PolarScanParam_getDataType(param) != RaveDataType_UCHAR) {
-    RAVE_WARNING0("FmiImages can only support 8-bit data");
+      PolarScanParam_getDataType(param) != RaveDataType_UCHAR &&
+      PolarScanParam_getDataType(param) != RaveDataType_SHORT &&
+      PolarScanParam_getDataType(param) != RaveDataType_USHORT) {
+    RAVE_WARNING0("FmiImages can only support 8 and 16-bit data");
     goto done;
   }
 
+  gain = PolarScanParam_getGain(param);
+  offset = PolarScanParam_getOffset(param);
+
   RaveFmiImage_setGain(raveimg, PolarScanParam_getGain(param));
   RaveFmiImage_setOffset(raveimg, PolarScanParam_getOffset(param));
+  RaveFmiImage_setNodata(raveimg, PolarScanParam_getNodata(param));
+  RaveFmiImage_setUndetect(raveimg, PolarScanParam_getUndetect(param));
 
+  image->original_type = PolarScanParam_getDataType(param);
 
   for (j = 0; j < image->height; j++) {
     for (i = 0; i < image->width; i++) {
-      double value = 0.0;
-      PolarScanParam_getValue(param, i, j, &value);
-      put_pixel(image, i, j, 0, (Byte)(value)); // why + 0.5 ?
+      double value = 0.0, bvalue = 0.0;;
+      if (image->original_type == RaveDataType_CHAR || image->original_type == RaveDataType_UCHAR) {
+        PolarScanParam_getValue(param, i, j, &value);
+        bvalue = value;
+      } else {
+        /* This is slightly dangerous since there might actually be data that is 0 but hopefully it's not going to be an issue since we create a new range that is used in the array used for the bropo calculations */
+        RaveValueType t = PolarScanParam_getValue(param, i, j, &value);
+        if (t == RaveValueType_UNDETECT) {
+          bvalue = 0;
+        } else if (t == RaveValueType_NODATA) {
+          bvalue = 255;
+        } else {
+          bvalue = ((value*gain + offset) - (-32.0))/0.5;
+        }
+      }
+      put_pixel(image, i, j, 0, (Byte)(bvalue)); // why + 0.5 ?
+      put_pixel_orig(image, i, j, 0, value);
     }
   }
 
@@ -188,6 +214,8 @@ static int RaveFmiImageInternal_fieldToFmiImage(RaveField_t* field, FmiImage* im
 {
   int i = 0, j = 0;
   int result = 0;
+  double nodata=255.0, undetect=0.0, gain=1.0, offset=0.0;
+  RaveAttribute_t* attr = NULL;
 
   RAVE_ASSERT((field != NULL), "field == NULL");
   RAVE_ASSERT((image != NULL), "image == NULL");
@@ -199,16 +227,56 @@ static int RaveFmiImageInternal_fieldToFmiImage(RaveField_t* field, FmiImage* im
   initialize_image(image);
 
   if (RaveField_getDataType(field) != RaveDataType_CHAR &&
-      RaveField_getDataType(field) != RaveDataType_UCHAR) {
-    RAVE_WARNING0("FmiImages can only support 8-bit data");
+      RaveField_getDataType(field) != RaveDataType_UCHAR &&
+      RaveField_getDataType(field) != RaveDataType_SHORT &&
+      RaveField_getDataType(field) != RaveDataType_USHORT) {
+    RAVE_WARNING0("FmiImages can only support 8 and 16-bit data");
     goto done;
   }
+  attr = RaveField_getAttribute(field, "what/gain");
+  if (attr != NULL) {
+    RaveAttribute_getDouble(attr, &gain);
+  }
+  RAVE_OBJECT_RELEASE(attr);
+  attr = RaveField_getAttribute(field, "what/offset");
+  if (attr != NULL) {
+    RaveAttribute_getDouble(attr, &offset);
+  }
+  RAVE_OBJECT_RELEASE(attr);
+  attr = RaveField_getAttribute(field, "what/nodata");
+  if (attr != NULL) {
+    RaveAttribute_getDouble(attr, &nodata);
+  }
+  RAVE_OBJECT_RELEASE(attr);
+  attr = RaveField_getAttribute(field, "what/undetect");
+  if (attr != NULL) {
+    RaveAttribute_getDouble(attr, &undetect);
+  }
+  RAVE_OBJECT_RELEASE(attr);
+
+  image->original_type = RaveField_getDataType(field);
 
   for (j = 0; j < image->height; j++) {
     for (i = 0; i < image->width; i++) {
-      double value = 0.0;
-      RaveField_getValue(field, i, j, &value);
-      put_pixel(image, i, j, 0, (Byte)(value)); // why + 0.5 ?
+      double value = 0.0, bvalue = 0.0;;
+
+      if (image->original_type == RaveDataType_CHAR || image->original_type == RaveDataType_UCHAR) {
+        RaveField_getValue(field, i, j, &value);
+        bvalue = value;
+      } else {
+        /* This is slightly dangerous since there might actually be data that is 0 but hopefully it's not going to be an issue since we create a new range that is used in the array used for the bropo calculations */
+        RaveField_getValue(field, i, j, &value);
+        if (value == undetect) {
+          bvalue = 0;
+        } else if (value == nodata) {
+          bvalue = 255;
+        } else {
+          bvalue = ((value*gain + offset) - (-32.0))/0.5;
+        }
+      }
+
+      put_pixel(image, i, j, 0, (Byte)(bvalue)); // why + 0.5 ?
+      put_pixel_orig(image, i, j, 0, value);
     }
   }
 
@@ -223,7 +291,7 @@ done:
  * @param[in] quantity - the quantity of the parameter. If null, default is DBZH.
  * @return the polar scan on success otherwise NULL
  */
-static PolarScan_t* RaveFmiImageInternal_fmiImageToScan(FmiImage* image, double offset, double gain, const char* quantity)
+static PolarScan_t* RaveFmiImageInternal_fmiImageToScan(FmiImage* image, double offset, double gain, const char* quantity, int datatype)
 {
   PolarScan_t* scan = NULL;
   PolarScan_t* result = NULL;
@@ -240,21 +308,33 @@ static PolarScan_t* RaveFmiImageInternal_fmiImageToScan(FmiImage* image, double 
 
   PolarScanParam_setGain(param, gain);
   PolarScanParam_setOffset(param, offset);
-  PolarScanParam_setNodata(param, 255.0);
-  PolarScanParam_setUndetect(param, 0.0);
+  PolarScanParam_setNodata(param, image->original_nodata);
+  PolarScanParam_setUndetect(param, image->original_undetect);
   if (quantity != NULL) {
     PolarScanParam_setQuantity(param, quantity);
   } else {
     PolarScanParam_setQuantity(param, "DBZH");
   }
-  if (!PolarScanParam_createData(param, image->width, image->height, RaveDataType_UCHAR)) {
-    RAVE_CRITICAL0("Failed to allocate memory for data");
-    goto done;
+
+  if (datatype == 0) {
+    if (!PolarScanParam_createData(param, image->width, image->height, image->original_type)) {
+      RAVE_CRITICAL0("Failed to allocate memory for data");
+      goto done;
+    }
+  } else {
+    if (!PolarScanParam_createData(param, image->width, image->height, RaveDataType_UCHAR)) {
+      RAVE_CRITICAL0("Failed to allocate memory for data");
+      goto done;
+    }
   }
 
   for (ray = 0; ray < image->height; ray++) {
     for (bin = 0; bin < image->width; bin++) {
-      PolarScanParam_setValue(param, bin, ray, (double)get_pixel(image, bin, ray, 0));
+      if (datatype != 2 && (image->original_type == RaveDataType_CHAR || image->original_type == RaveDataType_UCHAR || datatype == 1)) {
+        PolarScanParam_setValue(param, bin, ray, (double)get_pixel(image, bin, ray, 0));
+      } else {
+        PolarScanParam_setValue(param, bin, ray, (double)get_pixel_orig(image, bin, ray, 0));
+      }
     }
   }
   if (!PolarScan_addParameter(scan, param)) {
@@ -278,7 +358,7 @@ done:
  * @param[in] quantity - the quantity of the parameter. If null, default is DBZH.
  * @return the rave field on success otherwise NULL
  */
-static RaveField_t* RaveFmiImageInternal_fmiImageToField(FmiImage* image)
+static RaveField_t* RaveFmiImageInternal_fmiImageToField(FmiImage* image, int datatype)
 {
   RaveField_t* field = NULL;
   RaveField_t* result = NULL;
@@ -291,14 +371,25 @@ static RaveField_t* RaveFmiImageInternal_fmiImageToField(FmiImage* image)
     goto done;
   }
 
-  if (!RaveField_createData(field, image->width, image->height, RaveDataType_UCHAR)) {
-    RAVE_CRITICAL0("Failed to allocate memory for data");
-    goto done;
+  if (datatype == 0) {
+    if (!RaveField_createData(field, image->width, image->height, image->original_type)) {
+      RAVE_CRITICAL0("Failed to allocate memory for data");
+      goto done;
+    }
+  } else {
+    if (!RaveField_createData(field, image->width, image->height, RaveDataType_UCHAR)) {
+      RAVE_CRITICAL0("Failed to allocate memory for data");
+      goto done;
+    }
   }
 
   for (ray = 0; ray < image->height; ray++) {
     for (bin = 0; bin < image->width; bin++) {
-      RaveField_setValue(field, bin, ray, (double)get_pixel(image, bin, ray, 0));
+      if (datatype != 2 && (image->original_type == RaveDataType_CHAR || image->original_type == RaveDataType_UCHAR || datatype == 1)) {
+        RaveField_setValue(field, bin, ray, (double)get_pixel(image, bin, ray, 0));
+      } else {
+        RaveField_setValue(field, bin, ray, (double)get_pixel_orig(image, bin, ray, 0));
+      }
     }
   }
 
@@ -337,6 +428,26 @@ void RaveFmiImage_fill(RaveFmiImage_t* self, unsigned char v)
   RAVE_ASSERT((self != NULL), "self == NULL");
   if (self->image != NULL) {
     fill_image(self->image, (Byte)v);
+    if (self->image->original != NULL) {
+      int i;
+      for (i = 0; i < self->image->volume; i++) {
+        self->image->original[i] = (double)v;
+      }
+    }
+  }
+}
+
+void RaveFmiImage_fillOriginal(RaveFmiImage_t* self, double v)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  if (self->image != NULL) {
+    if (self->image->original != NULL) {
+      int i;
+      int nv = self->image->width*self->image->height*self->image->channels;
+      for (i = 0; i < nv; i++) {
+        self->image->original[i] = (double)v;
+      }
+    }
   }
 }
 
@@ -346,7 +457,7 @@ FmiImage* RaveFmiImage_getImage(RaveFmiImage_t* self)
   return self->image;
 }
 
-PolarScan_t* RaveFmiImage_toPolarScan(RaveFmiImage_t* self, const char* quantity)
+PolarScan_t* RaveFmiImage_toPolarScan(RaveFmiImage_t* self, const char* quantity, int datatype)
 {
   PolarScan_t* result = NULL;
   PolarScan_t* scan = NULL;
@@ -357,7 +468,7 @@ PolarScan_t* RaveFmiImage_toPolarScan(RaveFmiImage_t* self, const char* quantity
 
   RAVE_ASSERT((self != NULL), "self == NULL");
 
-  scan = RaveFmiImageInternal_fmiImageToScan(&self->image[0], self->offset, self->gain, quantity);
+  scan = RaveFmiImageInternal_fmiImageToScan(&self->image[0], self->offset, self->gain, quantity, datatype);
   if (scan == NULL) {
     RAVE_CRITICAL0("Failed to convert image to scan");
     goto done;
@@ -382,7 +493,7 @@ done:
   return result;
 }
 
-RaveField_t* RaveFmiImage_toRaveField(RaveFmiImage_t* self)
+RaveField_t* RaveFmiImage_toRaveField(RaveFmiImage_t* self, int datatype)
 {
   RaveField_t* result = NULL;
   RaveField_t* field = NULL;
@@ -393,7 +504,7 @@ RaveField_t* RaveFmiImage_toRaveField(RaveFmiImage_t* self)
 
   RAVE_ASSERT((self != NULL), "self == NULL");
 
-  field = RaveFmiImageInternal_fmiImageToField(&self->image[0]);
+  field = RaveFmiImageInternal_fmiImageToField(&self->image[0], datatype);
   if (field == NULL) {
     RAVE_CRITICAL0("Failed to convert image to field");
     goto done;
@@ -485,6 +596,30 @@ double RaveFmiImage_getOffset(RaveFmiImage_t* self)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return self->offset;
+}
+
+void RaveFmiImage_setNodata(RaveFmiImage_t* self, double v)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  self->image->original_nodata = v;
+}
+
+double RaveFmiImage_getNodata(RaveFmiImage_t* self)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  return self->image->original_nodata;
+}
+
+void RaveFmiImage_setUndetect(RaveFmiImage_t* self, double v)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  self->image->original_undetect = v;
+}
+
+double RaveFmiImage_getUndetect(RaveFmiImage_t* self)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  return self->image->original_undetect;
 }
 
 RaveFmiImage_t* RaveFmiImage_new(int width, int height)

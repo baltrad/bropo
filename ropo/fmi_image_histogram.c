@@ -222,9 +222,10 @@ int histogram_mean_nonzero(Histogram h){
   sum=0;
   s=0;
   /* i=1,2,... */
-  for (i=1;i<256;i++){
+  for (i=1;i<256;i++) {
     s+=h[i];
-    sum+=h[i]*i;}
+    sum+=h[i]*i;
+  }
   if (s>0)
     return (sum/s);
   else
@@ -450,26 +451,31 @@ void initialize_histogram(FmiImage *source,Histogram histogram,int hrad,int vrad
   clear_histogram(histogram);   /*full? */
 
   /* EXCLUSIVE INITS */
-  if (hist_func==histogram_mean_weighted){
+  if (hist_func==histogram_mean_weighted) {
     fmi_debug(2,"initialize_histogram: histogram_mean_weighted, source:");
     image_info(source);
     fmi_debug(2,"initialize_histogram: histogram_mean_weighted, weight:");
     /* canonize_images(source,histogram_weight_image); */
     image_info(histogram_weight_image);
     histogram[HIST_SIZE]=0;
-    for (k=0;k<source->channels;k++)
-      for (m=-hrad;m<=hrad;m++) 
-	for (n=-vrad;n<=vrad;n++){
-	  w=get_pixel(histogram_weight_image,i+m,j+n,k);
-	  histogram[get_pixel(source,i+m,j+n,k)]+=w;
-	  histogram[HIST_SIZE]+=w;
-	}
+    for (k=0;k<source->channels;k++) {
+      for (m=-hrad;m<=hrad;m++) {
+        for (n=-vrad;n<=vrad;n++) {
+          w=get_pixel(histogram_weight_image,i+m,j+n,k);
+          histogram[get_pixel(source,i+m,j+n,k)]+=w;
+          histogram[HIST_SIZE]+=w;
+        }
+      }
+    }
   }
   else {
-    for (k=0;k<source->channels;k++)
-      for (m=-hrad;m<=hrad;m++) 
-	for (n=-vrad;n<=vrad;n++) 
-	  ++histogram[get_pixel(source,i+m,j+n,k)];
+    for (k=0; k < source->channels; k++) {
+      for (m=-hrad; m <= hrad; m++) {
+        for (n=-vrad; n <= vrad; n++) {
+          ++histogram[get_pixel(source,i+m,j+n,k)];
+        }
+      }
+    }
   } 
 
   /* quick add - check if ok? */
@@ -478,7 +484,7 @@ void initialize_histogram(FmiImage *source,Histogram histogram,int hrad,int vrad
 
   /* ADDED INITS */
   if (hist_func==histogram_variance_rot)
-    for (i=0;i<256;i++){
+    for (i=0;i<256;i++) {
       alpha=((float)i)/255*2.0*PI;
       histogram_cosine[i]=128+127*cos(alpha);
       histogram_sine[i]  =128+127*sin(alpha);
@@ -740,9 +746,9 @@ void pipeline_process(FmiImage *source,FmiImage *target,int hrad,int vrad,int (*
     fmi_debug(2,"pipeline_process: histogram_mean_weighted");
   }
 
-  if (width>height)
-    pipeline_process_row_major(source,target,hrad,vrad,histogram_function,histogram);
-  else
-  /*  printf(" width=%d\t height=%d\n",width,height); */
-    pipeline_process_col_major(source,target,hrad,vrad,histogram_function,histogram);
+  if (width > height) {
+    pipeline_process_row_major(source, target, hrad, vrad, histogram_function, histogram);
+  } else {
+    pipeline_process_col_major(source, target, hrad, vrad, histogram_function, histogram);
+  }
 }

@@ -401,13 +401,14 @@ fail:
 static PyObject* _pyfmiimage_toPolarScan(PyFmiImage* self, PyObject* args)
 {
   char* quantity = NULL;
+  int datatype=0;
   PolarScan_t* scan = NULL;
   PyObject* result = NULL;
 
-  if (!PyArg_ParseTuple(args, "|s", &quantity)) {
+  if (!PyArg_ParseTuple(args, "|si", &quantity, &datatype)) {
     return NULL;
   }
-  scan = RaveFmiImage_toPolarScan(self->image, quantity);
+  scan = RaveFmiImage_toPolarScan(self->image, quantity, datatype);
   if (scan != NULL) {
     result = (PyObject*)PyPolarScan_New(scan);
   }
@@ -425,16 +426,94 @@ static PyObject* _pyfmiimage_toRaveField(PyFmiImage* self, PyObject* args)
 {
   RaveField_t* field = NULL;
   PyObject* result = NULL;
+  int datatype=0;
 
-  if (!PyArg_ParseTuple(args, "")) {
+  if (!PyArg_ParseTuple(args, "|i", &datatype)) {
     return NULL;
   }
-  field = RaveFmiImage_toRaveField(self->image);
+  field = RaveFmiImage_toRaveField(self->image, datatype);
   if (field != NULL) {
     result = (PyObject*)PyRaveField_New(field);
   }
   RAVE_OBJECT_RELEASE(field);
   return result;
+}
+
+/**
+ * Sets the value in the processing array
+ * @param[in] self - self
+ * @param[in] args - (x,y),value
+ * @return None
+ */
+static PyObject* _pyfmiimage_setValue(PyFmiImage* self, PyObject* args)
+{
+  long x,y,v;
+
+  if (!PyArg_ParseTuple(args, "lll", &x, &y, &v)) {
+    return NULL;
+  }
+
+  put_pixel(RaveFmiImage_getImage(self->image), x, y, 0, (Byte)v);
+
+  Py_RETURN_NONE;
+}
+
+/**
+ * Returns the value in the processing array
+ * @param[in] self - self
+ * @param[in] args - (x,y)
+ * @return the value
+ */
+static PyObject* _pyfmiimage_getValue(PyFmiImage* self, PyObject* args)
+{
+  long x,y,v;
+
+  if (!PyArg_ParseTuple(args, "ll", &x, &y)) {
+    return NULL;
+  }
+
+  v = get_pixel(RaveFmiImage_getImage(self->image), x, y, 0);
+
+  return PyLong_FromLong(v);
+}
+
+/**
+ * Sets the value in the original array
+ * @param[in] self - self
+ * @param[in] args - (x,y),value
+ * @return None
+ */
+static PyObject* _pyfmiimage_setOriginalValue(PyFmiImage* self, PyObject* args)
+{
+  long x,y;
+  double v;
+
+  if (!PyArg_ParseTuple(args, "lld", &x, &y, &v)) {
+    return NULL;
+  }
+
+  put_pixel_orig(RaveFmiImage_getImage(self->image), x, y, 0, v);
+
+  Py_RETURN_NONE;
+}
+
+/**
+ * Returns the value in the original array
+ * @param[in] self - self
+ * @param[in] args - (x,y)
+ * @return the value
+ */
+static PyObject* _pyfmiimage_getOriginalValue(PyFmiImage* self, PyObject* args)
+{
+  long x,y;
+  double v;
+  if (!PyArg_ParseTuple(args, "ll", &x, &y)) {
+    return NULL;
+  }
+
+  v = get_pixel_orig(RaveFmiImage_getImage(self->image), x, y, 0);
+
+  return PyFloat_FromDouble(v);
 }
 
 /*@} End Of FmiImage */
@@ -446,11 +525,17 @@ static struct PyMethodDef _pyfmiimage_methods[] =
 {
   {"offset", NULL},
   {"gain", NULL},
+  {"undetect", NULL},
+  {"nodata", NULL},
   {"addAttribute", (PyCFunction)_pyfmiimage_addAttribute, 1},
   {"getAttribute", (PyCFunction)_pyfmiimage_getAttribute, 1},
   {"getAttributeNames", (PyCFunction)_pyfmiimage_getAttributeNames, 1},
   {"toPolarScan", (PyCFunction)_pyfmiimage_toPolarScan, 1},
   {"toRaveField", (PyCFunction)_pyfmiimage_toRaveField, 1},
+  {"setValue", (PyCFunction) _pyfmiimage_setValue, 1},
+  {"getValue", (PyCFunction) _pyfmiimage_getValue, 1},
+  {"setOriginalValue", (PyCFunction) _pyfmiimage_setOriginalValue, 1},
+  {"getOriginalValue", (PyCFunction) _pyfmiimage_getOriginalValue, 1},
   {NULL, NULL} /* sentinel */
 };
 
@@ -463,6 +548,10 @@ static PyObject* _pyfmiimage_getattro(PyFmiImage* self, PyObject* name)
     return PyFloat_FromDouble(RaveFmiImage_getOffset(self->image));
   } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("gain", name) == 0) {
     return PyFloat_FromDouble(RaveFmiImage_getGain(self->image));
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("nodata", name) == 0) {
+    return PyFloat_FromDouble(RaveFmiImage_getNodata(self->image));
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("undetect", name) == 0) {
+    return PyFloat_FromDouble(RaveFmiImage_getUndetect(self->image));
   }
   return PyObject_GenericGetAttr((PyObject*)self, name);
 }
@@ -497,6 +586,26 @@ static int _pyfmiimage_setattro(PyFmiImage* self, PyObject* name, PyObject* val)
       raiseException_gotoTag(done, PyExc_TypeError, "offset is a number");
     }
     RaveFmiImage_setGain(self->image, v);
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("nodata", name) == 0) {
+    double v = 0.0;
+    if (PyFloat_Check(val)) {
+      v = PyFloat_AsDouble(val);
+    } else if (PyLong_Check(val)) {
+      v = PyLong_AsDouble(val);
+    } else {
+      raiseException_gotoTag(done, PyExc_TypeError, "nodata is a number");
+    }
+    RaveFmiImage_setNodata(self->image, v);
+  } else if (PY_COMPARE_STRING_WITH_ATTRO_NAME("undetect", name) == 0) {
+    double v = 0.0;
+    if (PyFloat_Check(val)) {
+      v = PyFloat_AsDouble(val);
+    } else if (PyLong_Check(val)) {
+      v = PyLong_AsDouble(val);
+    } else {
+      raiseException_gotoTag(done, PyExc_TypeError, "undetect is a number");
+    }
+    RaveFmiImage_setUndetect(self->image, v);
   } else {
     raiseException_gotoTag(done, PyExc_AttributeError, PY_RAVE_ATTRO_NAME_TO_STRING(name));
   }

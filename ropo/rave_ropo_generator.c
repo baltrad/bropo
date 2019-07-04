@@ -425,6 +425,7 @@ static int RaveRopoGeneratorInternal_createProbabilityField(
     goto done;
   }
   RaveFmiImage_fill(outprob, CLEAR);
+  RaveFmiImage_fillOriginal(outprob, (double)CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(outprob, task) ||
       !RaveRopoGeneratorInternal_addTaskArgs(outprob, fmtstring)) {
@@ -947,6 +948,7 @@ RaveFmiImage_t* RaveRopoGenerator_restore(RaveRopoGenerator_t* self, int thresho
   }
 
   RaveFmiImage_fill(restored, CLEAR);
+  RaveFmiImage_fillOriginal(restored, (double)CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(restored, "fi.fmi.ropo.restore") ||
       !RaveRopoGeneratorInternal_addProbabilityTaskArgs(restored, self->probabilities, "RESTORE_THRESH: %d",threshold)) {
@@ -982,6 +984,7 @@ RaveFmiImage_t* RaveRopoGenerator_restore2(RaveRopoGenerator_t* self, int thresh
   }
 
   RaveFmiImage_fill(restored, CLEAR);
+  RaveFmiImage_fillOriginal(restored, (double)CLEAR);
 
   if (!RaveRopoGeneratorInternal_addTask(restored, "fi.fmi.ropo.restore2") ||
       !RaveRopoGeneratorInternal_addProbabilityTaskArgs(restored, self->probabilities, "RESTORE2_THRESH: %d",threshold)) {

@@ -62,6 +62,10 @@ new_image(int sweep_count)
   for(i=0; i<sweep_count; i++) {
     result[i].heights=NULL;
     result[i].array=NULL;
+    result[i].original=NULL;
+    result[i].original_nodata=255.0;
+    result[i].original_undetect=0.0;
+    result[i].original_type = RaveDataType_UNDEFINED;
     result[i].elevation_angle=0.0;
     result[i].channels=0;
     result[i].bin_depth=0.0;
@@ -82,6 +86,10 @@ void init_new_image(FmiImage* img) {
   img->sweep_count = 0;
   img->heights = NULL;
   img->array = NULL;
+  img->original_type = RaveDataType_UNDEFINED;
+  img->original_nodata=255.0;
+  img->original_undetect=0.0;
+  img->original = NULL;
   img->elevation_angle = 0.0;
   img->channels = 0;
   img->bin_depth = 0;
@@ -100,6 +108,7 @@ int initialize_image(FmiImage *img){
   img->area=img->width*img->height;
   img->volume=img->area*img->channels;
   img->array=(Byte *) RAVE_MALLOC(img->volume);
+  img->original=(double*) RAVE_MALLOC(img->volume*sizeof(double));
   img->coord_overflow_handler_x=BORDER;
   img->coord_overflow_handler_y=BORDER;
   img->max_value=255;
@@ -238,6 +247,9 @@ int copy_image_properties(FmiImage *sample,FmiImage *target){
   target->sweep_count     = sample->sweep_count;
   target->bin_depth       = sample->bin_depth;
   target->elevation_angle = sample->elevation_angle;
+  target->original_nodata = sample->original_nodata;
+  target->original_undetect = sample->original_undetect;
+  target->original_type   = sample->original_type;
 
   if(sample->heights == NULL)
     target->heights   = NULL;
@@ -253,7 +265,6 @@ int copy_image_properties(FmiImage *sample,FmiImage *target){
 
   target->area=target->width*target->height;
   target->volume=target->channels*target->area;
-
 
   return 1;
 }
@@ -281,6 +292,9 @@ int check_image_properties(FmiImage *sample,FmiImage *target){
   target->max_value=sample->max_value;
   target->area=target->width*target->height;
   target->volume=target->channels*target->area;
+  target->original_nodata = sample->original_nodata;
+  target->original_undetect = sample->original_undetect;
+  target->original_type = sample->original_type;
   return 1;
 }
 
@@ -289,7 +303,7 @@ int canonize_image(FmiImage *sample,FmiImage *target){
 	fmi_debug(2,"canonize_image?");
 	if (!check_image_properties(sample,target)){
 		fmi_debug(2,"canonize_image: YES");
-		copy_image_properties(sample,target);
+		copy_image_properties(sample, target);
 		initialize_image(target);
 	}
 	fmi_debug(2,"canonize_image END");
@@ -299,7 +313,8 @@ int canonize_image(FmiImage *sample,FmiImage *target){
 void reset_image(FmiImage *image){
   switch (image->type){
   case TRUE_IMAGE:
-    RAVE_FREE (image->array);
+    RAVE_FREE(image->array);
+    RAVE_FREE(image->original);
   case NULL_IMAGE:
   case LINK_IMAGE:
     image->width=0;
@@ -309,7 +324,11 @@ void reset_image(FmiImage *image){
     image->sweep_count=0;
     image->bin_depth=0.0;
     image->elevation_angle=0.0;
-    RAVE_FREE (image->array);
+    image->original_type = RaveDataType_UNDEFINED;
+    image->original_nodata = 255.0;
+    image->original_undetect = 0.0;
+    RAVE_FREE(image->array);
+    RAVE_FREE(image->original);
     RAVE_FREE(image->heights);
     image->type=NULL_IMAGE;
     return;
@@ -369,6 +388,12 @@ void put_pixel(FmiImage *img,int x,int y,int channel,Byte c){
   /*  return 1; */
 }
 
+void put_pixel_orig(FmiImage *img,int x,int y,int channel,double c){
+  handle_coord_overflow(img,&x,&y);
+  img->original[channel*img->area + y*img->width + x]=c;
+  /*  return 1; */
+}
+
 void put_pixel_direct(FmiImage *img,int address,Byte c){
   img->array[address]=c;
 }
@@ -412,6 +437,12 @@ Byte get_pixel(FmiImage *img,int x,int y,int channel){
   return (img->array[channel*img->area + y*img->width + x]); 
 }
 
+double get_pixel_orig(FmiImage *img,int x,int y,int channel){
+  /*  return (img->array[y*img->width+x][channel]); */
+  handle_coord_overflow(img,&x,&y);
+  return (img->original[channel*img->area + y*img->width + x]);
+}
+
 void fill_image(FmiImage *img,Byte c){
   register int i;
   img->area=img->width*img->height;
@@ -419,6 +450,15 @@ void fill_image(FmiImage *img,Byte c){
   for (i=0;i<img->volume;i++)
     img->array[i]=c;
 }
+
+void fill_image_orig(FmiImage *img,double c){
+  register int i;
+  img->area=img->width*img->height;
+  img->volume=img->area*img->channels;
+  for (i=0;i<img->volume;i++)
+    img->original[i]=c;
+}
+
 
 void image_fill_random(FmiImage *img,Byte mean,Byte amplitude){
   register int i;

@@ -861,6 +861,9 @@ int RaveRopoGenerator_classify(RaveRopoGenerator_t* self)
     goto done;
   }
 
+  RaveFmiImage_getImage(probability)->original_type = RaveDataType_UCHAR; /* We want the probability and markers field to be of UCHAR type */
+  RaveFmiImage_getImage(markers)->original_type = RaveDataType_UCHAR;
+
   RaveFmiImage_fill(probability, CLEAR);
   RaveFmiImage_fill(markers, CLEAR);
 
@@ -869,11 +872,13 @@ int RaveRopoGenerator_classify(RaveRopoGenerator_t* self)
   fmiProbImage = RaveFmiImage_getImage(probability);
   fmiMarkersImage = RaveFmiImage_getImage(markers);
 
+
   for (i = 0; i < probCount; i++) {
     int j = 0;
     RaveFmiImage_t* image = (RaveFmiImage_t*)RaveObjectList_get(self->probabilities, i);
     FmiImage* probImage = RaveFmiImage_getImage(image);
     FmiRadarPGMCode pgmCode = RaveRopoGeneratorInternal_getPgmCode(image);
+
     for (j = 0; j < fmiProbImage->volume; j++) {
       if (probImage->array[j] >= fmiProbImage->array[j]) {
         fmiMarkersImage->array[j]=pgmCode;

@@ -356,7 +356,24 @@ class PyRopoGeneratorTest(unittest.TestCase):
     result32bit=result32bit.astype(numpy.uint8)
     
     self.assertTrue(numpy.array_equal(result8bit.astype(numpy.int32),result32bit.astype(numpy.int32)))
+  
+  def testCompare_8bit_and_16bit_Classification(self):
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
+    result8bit = b.speckNormOld(-20,24,8).classify().classification.toRaveField().getData()
+    
+    self.assertEqual(numpy.uint8, result8bit.dtype)
+    
+    a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
+    # Adjust the 8 bit data to be 16 bit instead
+    p = a.getParameter("DBZH")
+    p.setData(p.getData().astype(numpy.int16))
+    c = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
 
+    result16bit = c.speckNormOld(-20,24,8).classify().classification.toRaveField().getData()
+    self.assertEqual(numpy.uint8, result16bit.dtype)
+
+    self.assertTrue(numpy.array_equal(result8bit,result16bit))
   
   # Simple way to ensure that a file is exported properly
   #

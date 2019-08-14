@@ -288,7 +288,7 @@ class PyRopoGeneratorTest(unittest.TestCase):
     c = b.speck(-30,12).restore(108).toRaveField().getData()
     self.assertEqual(numpy.int16, c.dtype)
 
-  def testChainCompare_8bit_and_16bit_Restore(self):
+  def XtestChainCompare_8bit_and_16bit_Restore(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
     result8bit = b.speckNormOld(-20,24,8).emitter2(-30,3,3).softcut(5,170,180).ship(20,8).speck(-30,12).restore(108).toPolarScan().getParameter("DBZH").getData()
@@ -310,7 +310,7 @@ class PyRopoGeneratorTest(unittest.TestCase):
     
     self.assertTrue(numpy.array_equal(result8bit.astype(numpy.int16),result16bit.astype(numpy.int16)))
 
-  def testChainCompare_8bit_and_16bit_Restore2(self):
+  def XtestChainCompare_8bit_and_16bit_Restore2(self):
     a = _raveio.open(self.PVOL_RIX_TESTFILE).object.getScan(0)
     b = _ropogenerator.new(_fmiimage.fromRave(a, "DBZH"))
     result8bit = b.speckNormOld(-20,24,8).emitter2(-30,3,3).softcut(5,170,180).ship(20,8).speck(-30,12).restore2(108).toPolarScan().getParameter("DBZH").getData()

@@ -970,7 +970,7 @@ void dump_comments(FILE *fp,char *comment,char *begin_code,char *end_code,int li
   l=0;
   for (i=0;i<=len;i++){
     if (l==0)
-      fprintf(fp,begin_code);
+      fprintf(fp, "%s", begin_code);
     c=comment[i];
     if (l==line_length-1){
       fprintf(fp,"%c\\%s",c,end_code);
@@ -978,7 +978,7 @@ void dump_comments(FILE *fp,char *comment,char *begin_code,char *end_code,int li
     else
       if ((c=='\n')||(i==len)){
 	/*    if ((l==line_length-1)||(i==len-1)){ */
-	fprintf(fp,end_code);
+	fprintf(fp, "%s", end_code);
 	l=0;}
       else {
 	fputc(c,fp);

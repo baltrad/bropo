@@ -149,7 +149,8 @@ class FmiImageTest(unittest.TestCase):
     self.assertAlmostEqual(a.elangle, c.elangle, 4)
     self.assertTrue(c.hasParameter("DBZH"))
     self.assertEqual(numpy.uint8, c.getParameter("DBZH").getData().dtype)
-    self.assertAlmostEqual(20.0, c.getParameter("DBZH").getValue(1,1)[1], 4)
+    # Expected result is (20.0*0.001- (-32))/0.5
+    self.assertAlmostEqual(64.0, c.getParameter("DBZH").getValue(1,1)[1], 2)
 
   def testToRaveField(self):
     a = _raveio.open(self.PVOL_TESTFILE).object
@@ -186,7 +187,7 @@ class FmiImageTest(unittest.TestCase):
     self.assertNotEqual(-1, str(type(c)).find("RaveFieldCore"))
     self.assertEqual(numpy.uint8, c.getData().dtype)
     self.assertAlmostEqual(20.0, c.getValue(1,1)[1], 4)
-        
+
 if __name__ == "__main__":
   #import sys;sys.argv = ['', 'Test.testName']
   unittest.main()

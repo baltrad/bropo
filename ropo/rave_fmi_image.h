@@ -174,6 +174,66 @@ void RaveFmiImage_setUndetect(RaveFmiImage_t* self, double v);
 double RaveFmiImage_getUndetect(RaveFmiImage_t* self);
 
 /**
+ * Sets the original (when converted from rave object) gain for the data in the image.
+ * Data stored to actual value is retrieved by offset + value * gain.
+ * @param[in] self - self
+ * @param[in] gain - the gain
+ */
+void RaveFmiImage_setOriginalGain(RaveFmiImage_t* self, double gain);
+
+/**
+ * Returns the original (when converted from rave object) gain for the data in the image
+ * Data stored to actual value is retrieved by offset + value * gain.
+ * @param[in] self - self
+ * @return the gain
+ */
+double RaveFmiImage_getOriginalGain(RaveFmiImage_t* self);
+
+/**
+ * Sets the original (when converted from rave object) gain for the data in the image
+ * Data stored to actual value is retrieved by offset + value * gain.
+ * @param[in] self - self
+ * @param[in] offset - the offset
+ */
+void RaveFmiImage_setOriginalOffset(RaveFmiImage_t* self, double offset);
+
+/**
+ * Returns the original (when converted from rave object) offset for the data in the image.
+ * Data stored to actual value is retrieved by offset + value * gain.
+ * @param[in] self - self
+ * @return the offset
+ */
+double RaveFmiImage_getOriginalOffset(RaveFmiImage_t* self);
+
+/**
+ * Sets the original (when converted from rave object) nodata for the data in the image.
+ * @param[in] self - self
+ * @param[in] v - the nodata value
+ */
+void RaveFmiImage_setOriginalNodata(RaveFmiImage_t* self, double v);
+
+/**
+ * Returns the original (when converted from rave object) nodata for the data in the image
+ * @param[in] self - self
+ * @return the nodata value
+ */
+double RaveFmiImage_getOriginalNodata(RaveFmiImage_t* self);
+
+/**
+ * Sets the original (when converted from rave object)undetect for the data in the image
+ * @param[in] self - self
+ * @param[in] v - the undetect value
+ */
+void RaveFmiImage_setOriginalUndetect(RaveFmiImage_t* self, double v);
+
+/**
+ * Returns the original (when converted from rave object)undetect for the data in the image.
+ * @param[in] self - self
+ * @return the undetect value
+ */
+double RaveFmiImage_getOriginalUndetect(RaveFmiImage_t* self);
+
+/**
  * Creates a rave fmi image with specified dimension
  * @param[in] width - the width
  * @param[in] height - the height

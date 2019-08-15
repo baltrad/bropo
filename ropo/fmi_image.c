@@ -65,6 +65,8 @@ new_image(int sweep_count)
     result[i].original=NULL;
     result[i].original_nodata=255.0;
     result[i].original_undetect=0.0;
+    result[i].original_gain=0.5;
+    result[i].original_offset=-32.0;
     result[i].original_type = RaveDataType_UNDEFINED;
     result[i].elevation_angle=0.0;
     result[i].channels=0;
@@ -89,6 +91,8 @@ void init_new_image(FmiImage* img) {
   img->original_type = RaveDataType_UNDEFINED;
   img->original_nodata=255.0;
   img->original_undetect=0.0;
+  img->original_gain=0.5;
+  img->original_offset=-32.0;
   img->original = NULL;
   img->elevation_angle = 0.0;
   img->channels = 0;
@@ -249,6 +253,8 @@ int copy_image_properties(FmiImage *sample,FmiImage *target){
   target->elevation_angle = sample->elevation_angle;
   target->original_nodata = sample->original_nodata;
   target->original_undetect = sample->original_undetect;
+  target->original_gain   = sample->original_gain;
+  target->original_offset = sample->original_offset;
   target->original_type   = sample->original_type;
 
   if(sample->heights == NULL)
@@ -294,6 +300,8 @@ int check_image_properties(FmiImage *sample,FmiImage *target){
   target->volume=target->channels*target->area;
   target->original_nodata = sample->original_nodata;
   target->original_undetect = sample->original_undetect;
+  target->original_gain = sample->original_gain;
+  target->original_offset = sample->original_offset;
   target->original_type = sample->original_type;
   return 1;
 }
@@ -327,6 +335,8 @@ void reset_image(FmiImage *image){
     image->original_type = RaveDataType_UNDEFINED;
     image->original_nodata = 255.0;
     image->original_undetect = 0.0;
+    image->original_gain = 0.5;
+    image->original_offset = -32.0;
     RAVE_FREE(image->array);
     RAVE_FREE(image->original);
     RAVE_FREE(image->heights);

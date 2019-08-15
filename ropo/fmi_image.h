@@ -149,6 +149,8 @@ struct fmi_image {
   RaveDataType original_type;
   double       original_nodata;
   double       original_undetect;
+  double       original_gain;
+  double       original_offset;
   double       *original; /**< the original data if it was greater than byte */
 
   CoordOverflowHandler coord_overflow_handler_x, coord_overflow_handler_y;

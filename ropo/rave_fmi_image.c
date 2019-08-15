@@ -39,6 +39,8 @@ struct _RaveFmiImage_t {
   RaveObjectHashTable_t* attrs; /**< attributes */
   double offset; /**< the offset the data has been stored with */
   double gain; /**< the offset the data has been stored with */
+  double nodata; /**< the nodata the data has been stored with */
+  double undetect; /**< the undetect the data has been stored with */
 };
 
 /*@{ Private functions */
@@ -72,6 +74,8 @@ static int RaveFmiImage_constructor(RaveCoreObject* obj)
   RaveFmiImage_t* this = (RaveFmiImage_t*)obj;
   this->offset = 0.0;
   this->gain = 1.0;
+  this->nodata = 255.0;
+  this->undetect = 0.0;
   this->image = new_image(1);
   this->attrs = RAVE_OBJECT_NEW(&RaveObjectHashTable_TYPE);
   if (this->image == NULL || this->attrs == NULL) {
@@ -107,6 +111,8 @@ static int RaveFmiImage_copyconstructor(RaveCoreObject* obj, RaveCoreObject* src
   RaveFmiImage_t* src = (RaveFmiImage_t*)srcobj;
   this->offset = src->offset;
   this->gain = src->gain;
+  this->nodata = src->nodata;
+  this->undetect = src->undetect;
   this->image = new_image(1);
   this->attrs = RAVE_OBJECT_CLONE(src->attrs);
   if (this->image == NULL || this->attrs == NULL) {
@@ -167,7 +173,20 @@ static int RaveFmiImageInternal_scanToFmiImage(PolarScan_t* scan, const char* qu
   RaveFmiImage_setNodata(raveimg, PolarScanParam_getNodata(param));
   RaveFmiImage_setUndetect(raveimg, PolarScanParam_getUndetect(param));
 
+  RaveFmiImage_setOriginalGain(raveimg, PolarScanParam_getGain(param));
+  RaveFmiImage_setOriginalOffset(raveimg, PolarScanParam_getOffset(param));
+  RaveFmiImage_setOriginalNodata(raveimg, PolarScanParam_getNodata(param));
+  RaveFmiImage_setOriginalUndetect(raveimg, PolarScanParam_getUndetect(param));
+
   image->original_type = PolarScanParam_getDataType(param);
+
+  if (image->original_type != RaveDataType_CHAR && image->original_type != RaveDataType_UCHAR) {
+    /* adjust nodata/undetect/gain/offset to be in range that is used when changing from >= short type into char type */
+    RaveFmiImage_setGain(raveimg, 0.5);
+    RaveFmiImage_setOffset(raveimg, -32.0);
+    RaveFmiImage_setNodata(raveimg, 255);
+    RaveFmiImage_setUndetect(raveimg, 0);
+  }
 
   for (j = 0; j < image->height; j++) {
     for (i = 0; i < image->width; i++) {
@@ -203,16 +222,18 @@ done:
  * @param[in] image - the image to be filled
  * @return 1 on success otherwise 0
  */
-static int RaveFmiImageInternal_fieldToFmiImage(RaveField_t* field, FmiImage* image)
+static int RaveFmiImageInternal_fieldToFmiImage(RaveField_t* field, RaveFmiImage_t* raveimg)
 {
   int i = 0, j = 0;
   int result = 0;
   double nodata=255.0, undetect=0.0, gain=1.0, offset=0.0;
   RaveAttribute_t* attr = NULL;
+  FmiImage* image = NULL;
 
   RAVE_ASSERT((field != NULL), "field == NULL");
-  RAVE_ASSERT((image != NULL), "image == NULL");
+  RAVE_ASSERT((raveimg != NULL), "raveimg == NULL");
 
+  image = RaveFmiImage_getImage(raveimg);
   reset_image(image);
   image->width=RaveField_getXsize(field);
   image->height=RaveField_getYsize(field);
@@ -242,6 +263,24 @@ static int RaveFmiImageInternal_fieldToFmiImage(RaveField_t* field, FmiImage* im
 
   image->original_type = RaveField_getDataType(field);
 
+  RaveFmiImage_setGain(raveimg, gain);
+  RaveFmiImage_setOffset(raveimg, offset);
+  RaveFmiImage_setNodata(raveimg, nodata);
+  RaveFmiImage_setUndetect(raveimg, undetect);
+
+  RaveFmiImage_setOriginalGain(raveimg, gain);
+  RaveFmiImage_setOriginalOffset(raveimg, offset);
+  RaveFmiImage_setOriginalNodata(raveimg, nodata);
+  RaveFmiImage_setOriginalUndetect(raveimg, undetect);
+
+  if (image->original_type != RaveDataType_CHAR && image->original_type != RaveDataType_UCHAR) {
+    /* adjust nodata/undetect/gain/offset to be in other range */
+    RaveFmiImage_setGain(raveimg, 0.5);
+    RaveFmiImage_setOffset(raveimg, -32.0);
+    RaveFmiImage_setNodata(raveimg, 255);
+    RaveFmiImage_setUndetect(raveimg, 0);
+  }
+
   for (j = 0; j < image->height; j++) {
     for (i = 0; i < image->width; i++) {
       double value = 0.0, bvalue = 0.0;;
@@ -267,7 +306,6 @@ static int RaveFmiImageInternal_fieldToFmiImage(RaveField_t* field, FmiImage* im
   }
 
   result = 1;
-done:
   return result;
 }
 
@@ -277,13 +315,17 @@ done:
  * @param[in] quantity - the quantity of the parameter. If null, default is DBZH.
  * @return the polar scan on success otherwise NULL
  */
-static PolarScan_t* RaveFmiImageInternal_fmiImageToScan(FmiImage* image, double offset, double gain, const char* quantity, int datatype)
+static PolarScan_t* RaveFmiImageInternal_fmiImageToScan(RaveFmiImage_t* self, const char* quantity, int datatype)
 {
   PolarScan_t* scan = NULL;
   PolarScan_t* result = NULL;
   PolarScanParam_t* param = NULL;
   int ray = 0, bin = 0;
-  RAVE_ASSERT((image != NULL), "image == NULL");
+  FmiImage* image = NULL;
+
+  RAVE_ASSERT((self != NULL), "self == NULL");
+
+  image = RaveFmiImage_getImage(self);
 
   scan = RAVE_OBJECT_NEW(&PolarScan_TYPE);
   param = RAVE_OBJECT_NEW(&PolarScanParam_TYPE);
@@ -292,10 +334,25 @@ static PolarScan_t* RaveFmiImageInternal_fmiImageToScan(FmiImage* image, double 
     goto done;
   }
 
-  PolarScanParam_setGain(param, gain);
-  PolarScanParam_setOffset(param, offset);
-  PolarScanParam_setNodata(param, image->original_nodata);
-  PolarScanParam_setUndetect(param, image->original_undetect);
+  if (datatype != 2 && (image->original_type == RaveDataType_CHAR || image->original_type == RaveDataType_UCHAR || datatype == 1)) {
+    PolarScanParam_setGain(param, self->gain);
+    PolarScanParam_setOffset(param, self->offset);
+    PolarScanParam_setNodata(param, self->nodata);
+    PolarScanParam_setUndetect(param, self->undetect);
+  } else {
+    if (datatype == 2) {
+      PolarScanParam_setGain(param, 0.5);
+      PolarScanParam_setOffset(param, -32.0);
+      PolarScanParam_setNodata(param, 255.0);
+      PolarScanParam_setUndetect(param, 0.0);
+    } else {
+      PolarScanParam_setGain(param, RaveFmiImage_getOriginalGain(self));
+      PolarScanParam_setOffset(param, RaveFmiImage_getOriginalOffset(self));
+      PolarScanParam_setNodata(param, RaveFmiImage_getOriginalNodata(self));
+      PolarScanParam_setUndetect(param, RaveFmiImage_getOriginalUndetect(self));
+    }
+  }
+
   if (quantity != NULL) {
     PolarScanParam_setQuantity(param, quantity);
   } else {
@@ -319,7 +376,18 @@ static PolarScan_t* RaveFmiImageInternal_fmiImageToScan(FmiImage* image, double 
       if (datatype != 2 && (image->original_type == RaveDataType_CHAR || image->original_type == RaveDataType_UCHAR || datatype == 1)) {
         PolarScanParam_setValue(param, bin, ray, (double)get_pixel(image, bin, ray, 0));
       } else {
-        PolarScanParam_setValue(param, bin, ray, (double)get_pixel_orig(image, bin, ray, 0));
+        double v = (double)get_pixel_orig(image, bin, ray, 0);
+        if (datatype == 2) {
+          if (v == image->original_nodata) {
+            v = 255;
+          } else if (v == image->original_undetect) {
+            v = 0;
+          } else {
+            v = v*image->original_gain + v*image->original_offset;
+            v = (v - (-32.0))/0.5;
+          }
+        }
+        PolarScanParam_setValue(param, bin, ray, v);
       }
     }
   }
@@ -454,7 +522,7 @@ PolarScan_t* RaveFmiImage_toPolarScan(RaveFmiImage_t* self, const char* quantity
 
   RAVE_ASSERT((self != NULL), "self == NULL");
 
-  scan = RaveFmiImageInternal_fmiImageToScan(&self->image[0], self->offset, self->gain, quantity, datatype);
+  scan = RaveFmiImageInternal_fmiImageToScan(self, quantity, datatype);
   if (scan == NULL) {
     RAVE_CRITICAL0("Failed to convert image to scan");
     goto done;
@@ -587,22 +655,70 @@ double RaveFmiImage_getOffset(RaveFmiImage_t* self)
 void RaveFmiImage_setNodata(RaveFmiImage_t* self, double v)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
-  self->image->original_nodata = v;
+  self->nodata = v;
 }
 
 double RaveFmiImage_getNodata(RaveFmiImage_t* self)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
-  return self->image->original_nodata;
+  return self->nodata;
 }
 
 void RaveFmiImage_setUndetect(RaveFmiImage_t* self, double v)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
-  self->image->original_undetect = v;
+  self->undetect = v;
 }
 
 double RaveFmiImage_getUndetect(RaveFmiImage_t* self)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  return self->undetect;
+}
+
+void RaveFmiImage_setOriginalGain(RaveFmiImage_t* self, double gain)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  self->image->original_gain = gain;
+}
+
+double RaveFmiImage_getOriginalGain(RaveFmiImage_t* self)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  return self->image->original_gain;
+}
+
+void RaveFmiImage_setOriginalOffset(RaveFmiImage_t* self, double offset)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  self->image->original_offset = offset;
+}
+
+double RaveFmiImage_getOriginalOffset(RaveFmiImage_t* self)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  return self->image->original_offset;
+}
+
+void RaveFmiImage_setOriginalNodata(RaveFmiImage_t* self, double v)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  self->image->original_nodata = v;
+}
+
+double RaveFmiImage_getOriginalNodata(RaveFmiImage_t* self)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  return self->image->original_nodata;
+}
+
+void RaveFmiImage_setOriginalUndetect(RaveFmiImage_t* self, double v)
+{
+  RAVE_ASSERT((self != NULL), "self == NULL");
+  self->image->original_undetect = v;
+}
+
+double RaveFmiImage_getOriginalUndetect(RaveFmiImage_t* self)
 {
   RAVE_ASSERT((self != NULL), "self == NULL");
   return self->image->original_undetect;
@@ -699,7 +815,7 @@ RaveFmiImage_t* RaveFmiImage_fromRaveField(RaveField_t* field)
     goto done;
   }
 
-  if (!RaveFmiImageInternal_fieldToFmiImage(field, &image->image[0])) {
+  if (!RaveFmiImageInternal_fieldToFmiImage(field, image)) {
     RAVE_ERROR0("Failed to convert rave field to fmi image");
     goto done;
   }

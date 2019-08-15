@@ -329,7 +329,6 @@ static int RaveRopoGeneratorInternal_valueToByteRange(int value, RaveFmiImage_t*
 
   offset = RaveFmiImage_getOffset(image);
   gain = RaveFmiImage_getGain(image);
-
   if (gain != 0.0) {
     result = (int)((value - offset)/gain);
   }
@@ -881,13 +880,14 @@ int RaveRopoGenerator_classify(RaveRopoGenerator_t* self)
 
     for (j = 0; j < fmiProbImage->volume; j++) {
       if (probImage->array[j] >= fmiProbImage->array[j]) {
+        /*fprintf(stderr, "Setting fmiProbImage(%d) = %d\n", j, probImage->array[j]); //printout of probablitity value*/
         fmiMarkersImage->array[j]=pgmCode;
         fmiProbImage->array[j]=probImage->array[j];
       }
     }
     RAVE_OBJECT_RELEASE(image);
   }
-
+  /*fprintf(stderr, "TYPE: %d\n", RaveFmiImage_getImage(probability)->original_type);*/
   if (!RaveRopoGeneratorInternal_addTask(probability, "fi.fmi.ropo.detector.classification") ||
       !RaveRopoGeneratorInternal_addProbabilityTaskArgs(probability, self->probabilities, "")) {
     RAVE_CRITICAL0("Failed to add task arguments");
@@ -946,6 +946,7 @@ RaveFmiImage_t* RaveRopoGenerator_restore(RaveRopoGenerator_t* self, int thresho
   if (self->classification == NULL || self->markers == NULL) {
     RaveRopoGenerator_classify(self);
   }
+
   restored = RAVE_OBJECT_CLONE(self->image);
   if (restored == NULL) {
     RAVE_CRITICAL0("Failed to clone image");
@@ -965,6 +966,7 @@ RaveFmiImage_t* RaveRopoGenerator_restore(RaveRopoGenerator_t* self, int thresho
                 RaveFmiImage_getImage(restored),
                 RaveFmiImage_getImage(self->classification),
                 threshold);
+  RaveFmiImage_getImage(self->classification)->original_type=RaveDataType_UCHAR; /** Classification should always be UCHAR */
 
   result = RAVE_OBJECT_COPY(restored);
 done:
@@ -1001,6 +1003,7 @@ RaveFmiImage_t* RaveRopoGenerator_restore2(RaveRopoGenerator_t* self, int thresh
                  RaveFmiImage_getImage(restored),
                  RaveFmiImage_getImage(self->classification),
                  threshold);
+  RaveFmiImage_getImage(self->classification)->original_type=RaveDataType_UCHAR; /** Classification should always be UCHAR */
 
   result = RAVE_OBJECT_COPY(restored);
 done:

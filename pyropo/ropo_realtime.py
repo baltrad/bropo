@@ -149,7 +149,7 @@ def process_scan(scan, options, quality_control_mode=QUALITY_CONTROL_MODE_ANALYZ
     param = newscan.getParameter(options.params)
     rg = _ropogenerator.new(image)
     if options.threshold:
-        raw_thresh = int((options.threshold - param.offset) / param.gain)
+        raw_thresh = int((options.threshold - image.offset) / image.gain)
         rg.threshold(raw_thresh)
     if options.speck:
         a, b = options.speck

@@ -80,7 +80,7 @@ rave2ropo(PolarVolume_t *rave_pvol, FmiImage **pvol)
  */
 
 PolarVolume_t * read_h5_radar_data(char *pvol_file, FmiImage **target){
-  PolarVolume_t *result = (PolarVolume_t *)RaveIO_getObject(RaveIO_open(pvol_file));
+  PolarVolume_t *result = (PolarVolume_t *)RaveIO_getObject(RaveIO_open(pvol_file, 0, NULL));
   rave2ropo(result, target);
   return result;
 }

@@ -260,7 +260,7 @@ if __name__ == "__main__":
         rio = _raveio.open(options.infile)
 
         if rio.objectType not in (_raveio.Rave_ObjectType_PVOL, _raveio.Rave_ObjectType_SCAN):
-            print "Input file must be either polar scan or volume. Exiting ..."
+            print("Input file must be either polar scan or volume. Exiting ...")
             sys.exit(1)
 
         if options.lookup:

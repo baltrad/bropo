@@ -33,7 +33,11 @@ import numpy
 import _polarscan
 import _polarscanparam
 from rave_defines import UTF8
+import sys
 
+use_source_encoding=False
+if sys.version_info < (3,):
+    use_source_encoding=True
 
 ## Copies the top-level 'what' attributes from one object to another.
 # Fixes /what/source in the process, if it doesn't contain the NOD identifier.
@@ -51,7 +55,10 @@ def copy_topwhat(ino, outo):
     S = odim_source.ODIM_Source(ino.source)
     if not S.nod:
         S.nod = odim_source.NOD[S.wmo]
-        outo.source = odim_source.SOURCE[S.nod].encode(UTF8)
+        if use_source_encoding:
+            outo.source = odim_source.SOURCE[S.nod].encode(UTF8)
+        else:
+            outo.source = odim_source.SOURCE[S.nod]
     else:
         outo.source = ino.source
 

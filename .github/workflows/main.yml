@@ -27,7 +27,7 @@ jobs:
       uses: mattnotmitt/doxygen-action@v1.1.0
       with:
         # Path to Doxyfile
-        doxyfile-path: "./ropo_doxygen.cfg" # default is ./Doxyfile
+        doxyfile-path: "./ropo_doxyfile.ini" # default is ./Doxyfile
         # Working directory
         working-directory: "doxygen" # default is .
     

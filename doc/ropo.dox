@@ -1,8 +1,6 @@
 /*!
  \mainpage bRopo - a BALTRAD version of the FMI Anomaly detection and removal package ROPO
 
- \author Anders Henja (anders@henjab.se)
-
  \section Introduction
  bRopo is an adaption of the existing FMI software package ROPO. The bRopo is adapted
  to integrate with the RAVE framework and also to provide users with a Python

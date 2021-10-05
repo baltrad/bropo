@@ -12,16 +12,22 @@ but all detectors that are working on volumes, like ground clutter, are not supp
  
 \subsection detector_speck Speck
 TBD by Markus
-MIN_DBZ max_a  Threshold by min dBz, detect specks < A 
+
+\verbatim
+<MIN_DBZ> <max_a>  Threshold by min dBz, detect specks < A
 -20dBz     5pix
+\endverbatim
 
 \subsection detector_specknormold SpeckNormOld
 TBD by Markus
-MIN_DBZ max_a> max_n  Threshold by min dBz, then detect specks, size A_max_range <=> size N*A A
+
+<MIN_DBZ> <max_a> <max_n>  Threshold by min dBz, then detect specks, size A_max_range <=> size N*A A
+
 -20        5       16
 
 \subsection detector_emitter Emitter
 TBD by Markus
+
 MIN_DBZ LENGTH   Filter unity-width emitter lines
 10dbz   4
 

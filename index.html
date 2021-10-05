@@ -79,37 +79,54 @@ Speck</h2>
 </pre><h2><a class="anchor" id="detector_specknormold"></a>
 SpeckNormOld</h2>
 <p >TBD by Markus</p>
-<p >&lt;MIN_DBZ&gt; &lt;max_a&gt; &lt;max_n&gt; Threshold by min dBz, then detect specks, size A_max_range &lt;=&gt; size N*A A</p>
-<p >-20 5 16</p>
-<h2><a class="anchor" id="detector_emitter"></a>
+<pre class="fragment">&lt;MIN_DBZ&gt; &lt;max_a&gt; &lt;max_n&gt;  Threshold by min dBz, then detect specks, size A_max_range &lt;=&gt; size N*A A
+-20        5       16
+</pre><h2><a class="anchor" id="detector_emitter"></a>
 Emitter</h2>
 <p >TBD by Markus</p>
-<p >MIN_DBZ LENGTH Filter unity-width emitter lines 10dbz 4</p>
-<h2><a class="anchor" id="detector_emitter2"></a>
+<pre class="fragment">MIN_DBZ LENGTH   Filter unity-width emitter lines
+10dbz   4
+</pre><h2><a class="anchor" id="detector_emitter2"></a>
 Emitter 2</h2>
-<p >TBD by Markus MIN_DBZ LENGTH width Filter emitter lines -10dbz 4bins 2</p>
-<h2><a class="anchor" id="detector_clutter"></a>
+<p >TBD by Markus</p>
+<pre class="fragment">MIN_DBZ LENGTH width     Filter emitter lines
+-10dbz     4bins    2
+</pre><h2><a class="anchor" id="detector_clutter"></a>
 Clutter</h2>
-<p >TBD by Markus &lt;MIN_DBZ&gt; &lt;max_incomp&gt; Remove specks under incompactness A -5 5</p>
-<h2><a class="anchor" id="detector_clutter2"></a>
+<p >TBD by Markus</p>
+<pre class="fragment">&lt;MIN_DBZ&gt; &lt;max_incomp&gt;   Remove specks under incompactness A
+-5         5
+</pre><h2><a class="anchor" id="detector_clutter2"></a>
 Clutter 2</h2>
-<p >TBD by Markus &lt;MIN_DBZ&gt; &lt;max_smooth&gt; Remove specks under smoothness -5 60</p>
-<h2><a class="anchor" id="detector_softcut"></a>
+<p >TBD by Markus</p>
+<pre class="fragment">&lt;MIN_DBZ&gt; &lt;max_smooth&gt; Remove specks under smoothness
+-5           60
+</pre><h2><a class="anchor" id="detector_softcut"></a>
 Softcut</h2>
-<p >TBD by Markus &lt;max_dbz&gt; &lt;r&gt; &lt;r2&gt; Remove insect band -10dbz 250km 100km</p>
-<h2><a class="anchor" id="detector_biomet"></a>
+<p >TBD by Markus</p>
+<pre class="fragment">&lt;max_dbz&gt;     &lt;r&gt;     &lt;r2&gt;   Remove insect band
+-10dbz    250km   100km
+</pre><h2><a class="anchor" id="detector_biomet"></a>
 Biomet</h2>
-<p >TBD by Markus &lt;dbz_max&gt; &lt;dbz_delta&gt; &lt;alt_max&gt; &lt;alt_delta&gt; Remove insect band -10dbz 5dBZ 5000m 1km</p>
-<h2><a class="anchor" id="detector_ship"></a>
+<p >TBD by Markus</p>
+<pre class="fragment">&lt;dbz_max&gt; &lt;dbz_delta&gt; &lt;alt_max&gt; &lt;alt_delta&gt;   Remove insect band
+-10dbz      5dBZ       5000m     1km
+</pre><h2><a class="anchor" id="detector_ship"></a>
 Ship</h2>
-<p >TBD by Markus &lt;min rel DBZ&gt; &lt;min A&gt; Remove ships 50 20</p>
-<h2><a class="anchor" id="detector_sun"></a>
+<p >TBD by Markus</p>
+<pre class="fragment">&lt;min rel DBZ&gt; &lt;min A&gt; Remove ships
+50           20
+</pre><h2><a class="anchor" id="detector_sun"></a>
 Sun</h2>
-<p >TBD by Markus &lt;MIN_DBZ&gt; &lt;min_length&gt; &lt;max_thickness&gt; Remove sun -20dBZ 100 3</p>
-<h2><a class="anchor" id="detector_sun2"></a>
+<p >TBD by Markus</p>
+<pre class="fragment">&lt;MIN_DBZ&gt;  &lt;min_length&gt; &lt;max_thickness&gt;      Remove sun 
+-20dBZ        100           3
+</pre><h2><a class="anchor" id="detector_sun2"></a>
 Sun 2</h2>
-<p >TBD by Markus &lt;MIN_DBZ&gt; &lt;min_length&gt; &lt;max_thickness&gt; &lt;azimuth&gt; &lt;elevation&gt; Remove sun -20dBZ 100 3 45 2</p>
-<h1><a class="anchor" id="ropo_api"></a>
+<p >TBD by Markus</p>
+<pre class="fragment">&lt;MIN_DBZ&gt;  &lt;min_length&gt; &lt;max_thickness&gt; &lt;azimuth&gt; &lt;elevation&gt;   Remove sun 
+-20dBZ        100          3             45        2
+</pre><h1><a class="anchor" id="ropo_api"></a>
 C API</h1>
 <p >To integrate cleanly with RAVE some wrappers have been implemented that wrap all ROPO functionality in RAVE Objects so that it is possible to send the objects around and also integrate properly with the RAVE Python APIs.</p>
 <p >Two main objects have been defined, <a class="el" href="rave__fmi__image_8h.html#a04dae8cb01feee11a6eb614206a62b82">RaveFmiImage_t</a> and <a class="el" href="rave__ropo__generator_8h.html#af17b227f3091794e44e7efdc8de34e34">RaveRopoGenerator_t</a>. These contain most of the functionality you need when running the detectors. On top of this, you will need to be familiar with the different RAVE objects that you might run into. Especially, PolarScan_t and RaveField_t. You are also assumed to have fair knowledge about the RaveIO_t routines.</p>
@@ -141,37 +158,44 @@ fail:
   RAVE_OBJECT_RELEASE(scan);
   RAVE_OBJECT_RELEASE(raveio);
   return result;
-}</pre><p >As you can see from the above example, it is pretty straight forward. Of course you can perform more complex operations, like getting classifications, updating quality information in a polar object etc. Let's assume you have got hold of a classification field, you can easily add it to a polar scan as a quality field by doing the following.</p>
+}
+</pre><p >As you can see from the above example, it is pretty straight forward. Of course you can perform more complex operations, like getting classifications, updating quality information in a polar object etc. Let's assume you have got hold of a classification field, you can easily add it to a polar scan as a quality field by doing the following.</p>
 <pre class="fragment"> ...
  RaveFmiImage_t* classification = RaveRopoGenerator_getClassification(generator);
  RaveField_t* quality = RaveFmiImate_toRaveField(classification);
  PolarScan_addQuality(scan, quality);
  RAVE_OBJECT_RELEASE(quality);
  RAVE_OBJECT_RELEASE(classification);
- ...</pre><p >There are a lot more variants on how to work with the API so please refer to the header file for more information.</p>
+ ...
+</pre><p >There are a lot more variants on how to work with the API so please refer to the header file for more information.</p>
 <h1><a class="anchor" id="ropo_python_api"></a>
 Python API</h1>
 <p >In contrast to the C API, the Python API is not very chatty, and it is very easy to implement compact, easy to understand, detector sequences with a lot of variants for getting a specific result.</p>
 <p >Firstly, all detectors return the generator itself which means that you can easily chain a number of detectors on one line.</p>
 <pre class="fragment"> b = _ropogenerator.new(image)
  b.speck(-20,5).emitter(-20,5).ship(15,8)
- restored = b.restore(100)</pre><p >Easy enough! Let's assume that you want to run a detector, then update the image itself and then run another detector. This is also a simple operation by using restoreSelf.</p>
+ restored = b.restore(100)
+</pre><p >Easy enough! Let's assume that you want to run a detector, then update the image itself and then run another detector. This is also a simple operation by using restoreSelf.</p>
 <pre class="fragment"> b.speck(-20,5).restoreSelf().ship(15.8)
  restored = b.getImage() # Will return the image after speck.
- restored2 = b.restore() # Returns the image with both speck and ship executed.</pre><p >Let's assume that you want to get a number of different restored images without having to re-initialize the generator. It can be good to know that the result from all detectors are stacked which means that if you want to get individual classification fields from each detector you will have to run an operation called <em>declassify</em>. Fortunately this is also quite obvious when you have seen it.</p>
+ restored2 = b.restore() # Returns the image with both speck and ship executed.
+</pre><p >Let's assume that you want to get a number of different restored images without having to re-initialize the generator. It can be good to know that the result from all detectors are stacked which means that if you want to get individual classification fields from each detector you will have to run an operation called <em>declassify</em>. Fortunately this is also quite obvious when you have seen it.</p>
 <pre class="fragment"> b = _ropogenerator.new(image)
  speckprob = b.speck(-20,5).classification
  speckemitterprob = b.emitter(-20, 5).classification  #speck and emitter classification
- emitterprob = b.declassify().emitter(-20,5).classification # Only emitter classification</pre><p >And as usual, there is another way to do the above.</p>
+ emitterprob = b.declassify().emitter(-20,5).classification # Only emitter classification
+</pre><p >And as usual, there is another way to do the above.</p>
 <pre class="fragment"> b = _ropogenerator.new(image)
  b.speck(-20,5).emitter(-20,5)
  speckprob = b.getProbabilityField(0)
  emitterprob = b.getProbabilityField(0)
- speckemitterprob = b.classification</pre><p >All detectors will store some meta information in the FmiImage so that you are able to identify what has been done on the image. The two arguments how/task and how/task_args contain this information. You can get hold of it by doing the following</p>
+ speckemitterprob = b.classification
+</pre><p >All detectors will store some meta information in the FmiImage so that you are able to identify what has been done on the image. The two arguments how/task and how/task_args contain this information. You can get hold of it by doing the following</p>
 <pre class="fragment"> b = _ropogenerator.new(image)
  c = b.speck(-20,5).emitter(-20,5).classification
  print "TASK: %s"%c.getAttribute("how/task") # prints TASK: fi.fmi.ropo.detector.classification
- print "ARGS: %s"%c.getAttribute("how/task_args") # prints ARGS: SPECK: -20,5; EMITTER: -20,5</pre><p >That was a brief explanation on how to use the Python API, what values you should provide to the different detectors is up to the user and will not be covered here.</p>
+ print "ARGS: %s"%c.getAttribute("how/task_args") # prints ARGS: SPECK: -20,5; EMITTER: -20,5
+</pre><p >That was a brief explanation on how to use the Python API, what values you should provide to the different detectors is up to the user and will not be covered here.</p>
 <p >To give you a head start on how to use the RAVE support to run the different detectors and store the result. The following example will process all DBZH parameters in the volume with the three detectors: speck, emitter and ship. Then it will store the classification (probability field) and the restored image as quality parameters in the scans. Finally it will store the file with the name "myprocessedvolume.h5".</p>
 <pre class="fragment"> volume = _raveio.open("myvolume.h5").object
  for i in range(volume.getNumberOfScans()):
@@ -186,16 +210,20 @@ Python API</h1>
  output = _raveio.new()
  output.object = volume
  output.filename = "myprocessedvolume.h5"
- output.save()</pre><h1><a class="anchor" id="realtime"></a>
+ output.save()
+</pre><h1><a class="anchor" id="realtime"></a>
 Real-time bRopo</h1>
 <p >We have included a plugin for use with the RAVE Product Generation Framework (PGF). This plugin is called rave_pgf_ropo_plugin.py and the PGF is the XML-RPC server presented and described in the RAVE documentation. Basically, this plugin allows you to register bRopo as a product generator that can be run in real time by the PGF server.</p>
 <p >Registering this bRopo with RAVE can be done by using the <em>pgf_registry</em> command with the following options and arguments:</p>
-<pre class="fragment"> % pgf_registry -a -H http://&lt;host&gt;:&lt;port&gt;/RAVE --name=fi.fmi.ropo -m rave_pgf_ropo_plugin -f generate -d 'Detects and removes non-precipitation echoes.'</pre><p >Note that this plugin's <em>generate</em> function does not take any arguments except the files list, and this list must contain only one single file containing either a polar scan or volume. The reason for this is that bRopo has so many bells and whistles that, at least for the purposes of real-time operation, it makes more sense to organize all arguments in a separate registry.</p>
+<pre class="fragment"> % pgf_registry -a -H http://&lt;host&gt;:&lt;port&gt;/RAVE --name=fi.fmi.ropo -m rave_pgf_ropo_plugin -f generate -d 'Detects and removes non-precipitation echoes.'
+</pre><p >Note that this plugin's <em>generate</em> function does not take any arguments except the files list, and this list must contain only one single file containing either a polar scan or volume. The reason for this is that bRopo has so many bells and whistles that, at least for the purposes of real-time operation, it makes more sense to organize all arguments in a separate registry.</p>
 <p >The bRopo options/arguments is an XML file designed to be read, understood, and edited easily by human beings. There is no functionality to verify the integrity of the XML after you have edited the registry, but on a development system you can install it and check by loading it:</p>
 <pre class="fragment"> (shell)$ python
- &gt;&gt;&gt; import ropo_realtime</pre><p >If the <em><a class="el" href="namespaceropo__realtime.html">ropo_realtime</a></em> module is loaded correctly, it will do so silently. If the Python interpreter throws an error that looks like this: "xml.parsers.expat.ExpatError: not well-formed (invalid token):", then the XML is invalid and you need to fix it. There is no functionality to validate the integrity of the bRopo arguments themselves, ie. whether the argument values given are correct in number and within reasonable bounds.</p>
+ &gt;&gt;&gt; import ropo_realtime
+</pre><p >If the <em><a class="el" href="namespaceropo__realtime.html">ropo_realtime</a></em> module is loaded correctly, it will do so silently. If the Python interpreter throws an error that looks like this: "xml.parsers.expat.ExpatError: not well-formed (invalid token):", then the XML is invalid and you need to fix it. There is no functionality to validate the integrity of the bRopo arguments themselves, ie. whether the argument values given are correct in number and within reasonable bounds.</p>
 <p >The format of an XML entry is the following:</p>
-<pre class="fragment"> &lt;lvrix threshold="COLD" parameters="DBZH" highest-elev="2.0" restore-thresh="80" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,2" ship="20,8" speck="-30,12" /&gt;</pre><p >The options <em>threshold</em>, <em>parameters</em>, <em>highest-elev</em>, and <em>restore-thresh</em> are all mandatory, and so is either <em>restore</em> or <em>restore-fill</em>. The other options are the anomaly detectors, and they can be used or not depending on your preferences. Note that for real-time purposes only those anomaly detectors given above in the example are the ones supported. This is because these are the ones that are battle-tested after 10 years of real-time use.</p>
+<pre class="fragment"> &lt;lvrix threshold="COLD" parameters="DBZH" highest-elev="2.0" restore-thresh="80" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,2" ship="20,8" speck="-30,12" /&gt;
+</pre><p >The options <em>threshold</em>, <em>parameters</em>, <em>highest-elev</em>, and <em>restore-thresh</em> are all mandatory, and so is either <em>restore</em> or <em>restore-fill</em>. The other options are the anomaly detectors, and they can be used or not depending on your preferences. Note that for real-time purposes only those anomaly detectors given above in the example are the ones supported. This is because these are the ones that are battle-tested after 10 years of real-time use.</p>
 <p >The example values above are almost the same as the default values, but they have been tuned for use with data from the Latvian radar at Riga aiport. Additional radars that need special tuning of bRopo's options can be added as separate entries. The important thing to remember is that each radar is identified using its NOD identifier that should be included in the <em>/what/source</em> metadata attribute in ODIM_H5.</p>
 <p >The values for the <em>threshold</em> option are looked up according to a dictionary found at the top of the <a class="el" href="ropo__realtime_8py.html" title="FMI&#39;s ROPO Anomaly Detection and Removal ... ... as a BALTRAD tool.">ropo_realtime.py</a> module. The item for each entry in the THRESHOLDS dictionary contains a 12-tuple of dBZ thresholds, one for each month of the year starting with January. The idea is to be able to define reflectivity thresholds that are either "flat", ie. static throughout the year, or a bit more dynamic depending on their location. The functinality in bRopo looks up the threshold of the month based on the <em>/what/date</em> attribute in ODIM_H5. You are free to define your own thresholds according to this scheme, but keep in mind that the tuple must always have 12 values. <br  />
 </p>

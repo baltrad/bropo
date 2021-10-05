@@ -21,73 +21,101 @@ TBD by Markus
 \subsection detector_specknormold SpeckNormOld
 TBD by Markus
 
+\verbatim
 <MIN_DBZ> <max_a> <max_n>  Threshold by min dBz, then detect specks, size A_max_range <=> size N*A A
-
 -20        5       16
+\endverbatim
 
 \subsection detector_emitter Emitter
 TBD by Markus
 
+\verbatim
 MIN_DBZ LENGTH   Filter unity-width emitter lines
 10dbz   4
+\endverbatim
 
 \subsection detector_emitter2 Emitter 2
 TBD by Markus
+
+\verbatim
 MIN_DBZ LENGTH width 	 Filter emitter lines
 -10dbz     4bins    2
+\endverbatim
   
 \subsection detector_clutter Clutter
 TBD by Markus
+
+\verbatim
 <MIN_DBZ> <max_incomp>	 Remove specks under incompactness A
 -5         5
+\endverbatim
    
- \subsection detector_clutter2 Clutter 2
-  TBD by Markus
-  <MIN_DBZ> <max_smooth> Remove specks under smoothness
-  -5           60
+\subsection detector_clutter2 Clutter 2
+TBD by Markus
+
+\verbatim
+<MIN_DBZ> <max_smooth> Remove specks under smoothness
+-5           60
+\endverbatim
   
- \subsection detector_softcut Softcut
-  TBD by Markus
-  <max_dbz>     <r>     <r2>	 Remove insect band
-  -10dbz    250km   100km
+\subsection detector_softcut Softcut
+TBD by Markus
+
+\verbatim
+<max_dbz>     <r>     <r2>	 Remove insect band
+-10dbz    250km   100km
+\endverbatim
   
- \subsection detector_biomet Biomet
-  TBD by Markus
-  <dbz_max> <dbz_delta> <alt_max> <alt_delta>   Remove insect band
-  -10dbz      5dBZ       5000m     1km
+\subsection detector_biomet Biomet
+TBD by Markus
+
+\verbatim
+<dbz_max> <dbz_delta> <alt_max> <alt_delta>   Remove insect band
+-10dbz      5dBZ       5000m     1km
+\endverbatim
+
   
- \subsection detector_ship Ship
-  TBD by Markus
-  <min rel DBZ> <min A> Remove ships
-  50           20
+\subsection detector_ship Ship
+TBD by Markus
+
+\verbatim
+<min rel DBZ> <min A> Remove ships
+50           20
+\endverbatim
   
- \subsection detector_sun Sun
-  TBD by Markus
-  <MIN_DBZ>  <min_length> <max_thickness>      Remove sun 
-   -20dBZ        100           3
+\subsection detector_sun Sun
+TBD by Markus
+
+\verbatim
+<MIN_DBZ>  <min_length> <max_thickness>      Remove sun 
+-20dBZ        100           3
+\endverbatim
    
- \subsection detector_sun2 Sun 2
-  TBD by Markus
-  <MIN_DBZ>  <min_length> <max_thickness> <azimuth> <elevation>   Remove sun 
-  -20dBZ        100          3             45        2
+\subsection detector_sun2 Sun 2
+TBD by Markus
+
+\verbatim
+<MIN_DBZ>  <min_length> <max_thickness> <azimuth> <elevation>   Remove sun 
+-20dBZ        100          3             45        2
+\endverbatim
   
-  \section ropo_api C API
-  To integrate cleanly with RAVE some wrappers have been implemented that wrap all ROPO
-  functionality in RAVE Objects so that it is possible to send the objects around and also
-  integrate properly with the RAVE Python APIs.
+\section ropo_api C API
+To integrate cleanly with RAVE some wrappers have been implemented that wrap all ROPO
+functionality in RAVE Objects so that it is possible to send the objects around and also
+integrate properly with the RAVE Python APIs.
   
-  Two main objects have been defined, \ref RaveFmiImage_t and \ref RaveRopoGenerator_t. These contain most
-  of the functionality you need when running the detectors. On top of this, you will need to be familiar
-  with the different RAVE objects that you might run into. Especially, PolarScan_t and RaveField_t.
-  You are also assumed to have fair knowledge about the RaveIO_t routines.
+Two main objects have been defined, \ref RaveFmiImage_t and \ref RaveRopoGenerator_t. These contain most
+of the functionality you need when running the detectors. On top of this, you will need to be familiar
+with the different RAVE objects that you might run into. Especially, PolarScan_t and RaveField_t.
+You are also assumed to have fair knowledge about the RaveIO_t routines.
   
-  \subsection ropo_api_usage C API Usage
-  We have tried to keep the learning curve down as much as possible so mostly it should just be to
-  get hold of a polar scan. Convert it into a RaveFmiImage_t that you pass into the RaveRopoGenerator.
-  Then, when you have managed to do this, the real job comes to tuning the different detectors to your
-  needs which might be a lot trickier.
+\subsection ropo_api_usage C API Usage
+We have tried to keep the learning curve down as much as possible so mostly it should just be to
+get hold of a polar scan. Convert it into a RaveFmiImage_t that you pass into the RaveRopoGenerator.
+Then, when you have managed to do this, the real job comes to tuning the different detectors to your
+needs which might be a lot trickier.
   
-  \verbatim
+\verbatim
 static RaveFmiImage_t* getRestoredImage(const char* filename)
 {
   RaveFmiImage_t* image = NULL;
@@ -114,15 +142,15 @@ fail:
   RAVE_OBJECT_RELEASE(raveio);
   return result;
 }
-  \endverbatim
+\endverbatim
   
- As you can see from the above example, it is pretty straight forward. Of course you can
- perform more complex operations, like getting classifications, updating quality information
- in a polar object etc.
- Let's assume you have got hold of a classification field, you can easily add it to a polar
- scan as a quality field by doing the following.
+As you can see from the above example, it is pretty straight forward. Of course you can
+perform more complex operations, like getting classifications, updating quality information
+in a polar object etc.
+Let's assume you have got hold of a classification field, you can easily add it to a polar
+scan as a quality field by doing the following.
  
- \verbatim
+\verbatim
  ...
  RaveFmiImage_t* classification = RaveRopoGenerator_getClassification(generator);
  RaveField_t* quality = RaveFmiImate_toRaveField(classification);
@@ -130,79 +158,79 @@ fail:
  RAVE_OBJECT_RELEASE(quality);
  RAVE_OBJECT_RELEASE(classification);
  ...
- \endverbatim
+\endverbatim
  
- There are a lot more variants on how to work with the API so please refer to the header file for
- more information.
+There are a lot more variants on how to work with the API so please refer to the header file for
+more information.
  
  
- \section ropo_python_api Python API
- In contrast to the C API, the Python API is not very chatty, and it is very easy to implement
- compact, easy to understand, detector sequences with a lot of variants for getting a specific
- result.
+\section ropo_python_api Python API
+In contrast to the C API, the Python API is not very chatty, and it is very easy to implement
+compact, easy to understand, detector sequences with a lot of variants for getting a specific
+result.
  
- Firstly, all detectors return the generator itself which means that you can easily chain a number
- of detectors on one line.
+Firstly, all detectors return the generator itself which means that you can easily chain a number
+of detectors on one line.
  
- \verbatim
+\verbatim
  b = _ropogenerator.new(image)
  b.speck(-20,5).emitter(-20,5).ship(15,8)
  restored = b.restore(100)
- \endverbatim
+\endverbatim
  
- Easy enough! Let's assume that you want to run a detector, then update the image itself and then
- run another detector. This is also a simple operation by using restoreSelf.
+Easy enough! Let's assume that you want to run a detector, then update the image itself and then
+run another detector. This is also a simple operation by using restoreSelf.
  
- \verbatim
+\verbatim
  b.speck(-20,5).restoreSelf().ship(15.8)
  restored = b.getImage() # Will return the image after speck.
  restored2 = b.restore() # Returns the image with both speck and ship executed.
- \endverbatim
+\endverbatim
  
- Let's assume that you want to get a number of different restored images without having
- to re-initialize the generator. It can be good to know that the result from all detectors are
- stacked which means that if you want to get individual classification fields from each
- detector you will have to run an operation called \em declassify. Fortunately this is also quite
- obvious when you have seen it.
+Let's assume that you want to get a number of different restored images without having
+to re-initialize the generator. It can be good to know that the result from all detectors are
+stacked which means that if you want to get individual classification fields from each
+detector you will have to run an operation called \em declassify. Fortunately this is also quite
+obvious when you have seen it.
  
- \verbatim
+\verbatim
  b = _ropogenerator.new(image)
  speckprob = b.speck(-20,5).classification
  speckemitterprob = b.emitter(-20, 5).classification  #speck and emitter classification
  emitterprob = b.declassify().emitter(-20,5).classification # Only emitter classification
- \endverbatim
+\endverbatim
  
- And as usual, there is another way to do the above.
+And as usual, there is another way to do the above.
  
- \verbatim
+\verbatim
  b = _ropogenerator.new(image)
  b.speck(-20,5).emitter(-20,5)
  speckprob = b.getProbabilityField(0)
  emitterprob = b.getProbabilityField(0)
  speckemitterprob = b.classification
- \endverbatim
+\endverbatim
  
- All detectors will store some meta information in the FmiImage so that you are able to
- identify what has been done on the image. The two arguments how/task and how/task_args
- contain this information. You can get hold of it by doing the following
+All detectors will store some meta information in the FmiImage so that you are able to
+identify what has been done on the image. The two arguments how/task and how/task_args
+contain this information. You can get hold of it by doing the following
 
- \verbatim 
+\verbatim 
  b = _ropogenerator.new(image)
  c = b.speck(-20,5).emitter(-20,5).classification
  print "TASK: %s"%c.getAttribute("how/task") # prints TASK: fi.fmi.ropo.detector.classification
  print "ARGS: %s"%c.getAttribute("how/task_args") # prints ARGS: SPECK: -20,5; EMITTER: -20,5
- \endverbatim
+\endverbatim
 
- That was a brief explanation on how to use the Python API, what values you should provide to the
- different detectors is up to the user and will not be covered here.
+That was a brief explanation on how to use the Python API, what values you should provide to the
+different detectors is up to the user and will not be covered here.
  
- To give you a head start on how to use the RAVE support to run the different detectors and store
- the result. The following example will process all DBZH parameters in the volume with the three
- detectors: speck, emitter and ship. Then it will store the classification (probability field) and
- the restored image as quality parameters in the scans. Finally it will store the file with the
- name "myprocessedvolume.h5".
+To give you a head start on how to use the RAVE support to run the different detectors and store
+the result. The following example will process all DBZH parameters in the volume with the three
+detectors: speck, emitter and ship. Then it will store the classification (probability field) and
+the restored image as quality parameters in the scans. Finally it will store the file with the
+name "myprocessedvolume.h5".
   
- \verbatim
+\verbatim
  volume = _raveio.open("myvolume.h5").object
  for i in range(volume.getNumberOfScans()):
    scan = volume.getScan(0)
@@ -217,47 +245,47 @@ fail:
  output.object = volume
  output.filename = "myprocessedvolume.h5"
  output.save()
- \endverbatim
+\endverbatim
  
- \section realtime Real-time bRopo
+\section realtime Real-time bRopo
  
- We have included a plugin for use with the RAVE Product Generation Framework (PGF). This
- plugin is called rave_pgf_ropo_plugin.py and the PGF is the XML-RPC server presented and 
- described in the RAVE documentation. Basically, this plugin allows you to register bRopo as 
- a product generator that can be run in real time by the PGF server.
+We have included a plugin for use with the RAVE Product Generation Framework (PGF). This
+plugin is called rave_pgf_ropo_plugin.py and the PGF is the XML-RPC server presented and 
+described in the RAVE documentation. Basically, this plugin allows you to register bRopo as 
+a product generator that can be run in real time by the PGF server.
  
- Registering this bRopo with RAVE can be done by using the \em pgf_registry command with the following
- options and arguments:
+Registering this bRopo with RAVE can be done by using the \em pgf_registry command with the following
+options and arguments:
  
- \verbatim
+\verbatim
  % pgf_registry -a -H http://<host>:<port>/RAVE --name=fi.fmi.ropo -m rave_pgf_ropo_plugin -f generate -d 'Detects and removes non-precipitation echoes.'
- \endverbatim 
+\endverbatim 
  
- Note that this plugin's \em generate function does not take any arguments except the files list, 
- and this list must contain only one single file containing either a polar scan or volume. The 
- reason for this is that bRopo has so many bells and whistles that, at least for the purposes of
- real-time operation, it makes more sense to organize all arguments in a separate registry.
+Note that this plugin's \em generate function does not take any arguments except the files list, 
+and this list must contain only one single file containing either a polar scan or volume. The 
+reason for this is that bRopo has so many bells and whistles that, at least for the purposes of
+real-time operation, it makes more sense to organize all arguments in a separate registry.
  
- The bRopo options/arguments is an XML file designed to be read, understood, and edited easily by 
- human beings. There is no functionality to verify the integrity of the XML after you have edited the 
- registry, but on a development system you can install it and check by loading it:
+The bRopo options/arguments is an XML file designed to be read, understood, and edited easily by 
+human beings. There is no functionality to verify the integrity of the XML after you have edited the 
+registry, but on a development system you can install it and check by loading it:
  
- \verbatim
+\verbatim
  (shell)$ python
  >>> import ropo_realtime
- \endverbatim 
+\endverbatim 
  
- If the \em ropo_realtime module is loaded correctly, it will do so silently. If the Python interpreter
- throws an error that looks like this: "xml.parsers.expat.ExpatError: not well-formed (invalid token):",
- then the XML is invalid and you need to fix it. 
- There is no functionality to validate the integrity of the bRopo arguments themselves, ie. whether 
- the argument values given are correct in number and within reasonable bounds.
+If the \em ropo_realtime module is loaded correctly, it will do so silently. If the Python interpreter
+throws an error that looks like this: "xml.parsers.expat.ExpatError: not well-formed (invalid token):",
+then the XML is invalid and you need to fix it. 
+There is no functionality to validate the integrity of the bRopo arguments themselves, ie. whether 
+the argument values given are correct in number and within reasonable bounds.
  
- The format of an XML entry is the following:
+The format of an XML entry is the following:
  
- \verbatim
+\verbatim
  <lvrix threshold="COLD" parameters="DBZH" highest-elev="2.0" restore-thresh="80" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,2" ship="20,8" speck="-30,12" />
- \endverbatim 
+\endverbatim 
 
 The options \em threshold, \em parameters, \em highest-elev, and \em restore-thresh are all mandatory,
 and so is either \em restore or \em restore-fill. The other options are the anomaly detectors,

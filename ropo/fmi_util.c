@@ -28,6 +28,7 @@
 
 char *fmi_util_comment=NULL;
 
+char fmi_util_command_line[FMI_UTIL_COMMAND_LINE_LEN];
 
 /* GENERAL argv UTILITY */
 char *argument(int argc, char **argv, char *target){

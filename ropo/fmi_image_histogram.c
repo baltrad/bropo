@@ -26,8 +26,12 @@
 #include "fmi_image_filter.h"
 #include "fmi_image_histogram.h"
 
-/*FmiImage *histogram_weight_image=NULL; */
-/*histogram_weight_image=NULL; */
+FmiImage *histogram_weight_image=NULL;
+int histogram_threshold=0;
+Histogram histogram_weights;
+Histogram histogram_sine;
+Histogram histogram_cosine;
+
 int histogram_sample_count=0;
 int (* histogram_scaling_function)(int param, int value)=NULL;
 int histogram_scaling_parameter=128;

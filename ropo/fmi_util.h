@@ -68,8 +68,8 @@ int param(int argc, char **argv,int index, char *key);
 int paramn(int argc, char **argv,int index, char *key);
 
 #define FMI_UTIL_COMMAND_LINE_LEN 1024
-char fmi_util_command_line[FMI_UTIL_COMMAND_LINE_LEN];
-char *fmi_util_comment;
+extern char fmi_util_command_line[FMI_UTIL_COMMAND_LINE_LEN];
+extern char *fmi_util_comment;
 char *extract_command_line(int argc, char **argv);
 
   
@@ -95,7 +95,7 @@ char *file_name(char *filename);      /* without path */
 /* 1 light processing information */
 /* 2 light processing information, write aux files */
 /* 3 heavy processing information, write aux files  */
-int fmi_debug_level;
+extern int fmi_debug_level;
 #define FMI_DEBUG(n) (n<=fmi_debug_level)
 void fmi_debug(int n,char *s);
 void fmi_error(char *s);

@@ -38,15 +38,15 @@ void  down(FmiImage *source,Histogram h,int hrad,int vrad,int *i,int *j);
 void  left(FmiImage *source,Histogram h,int hrad,int vrad,int *i,int *j);
 void right(FmiImage *source,Histogram h,int hrad,int vrad,int *i,int *j);
 
-Histogram histogram_weights;
-Histogram histogram_sine;
-Histogram histogram_cosine;
+extern Histogram histogram_weights;
+extern Histogram histogram_sine;
+extern Histogram histogram_cosine;
 /*void initialize_histogram_trigon(); */
 
-int histogram_sample_count; /*  histogram_median2 */
-int histogram_threshold; /*  histogram_variance_rot */
+extern int histogram_sample_count; /*  histogram_median2 */
+extern int histogram_threshold; /*  histogram_variance_rot */
 
-FmiImage *histogram_weight_image;
+extern FmiImage *histogram_weight_image;
 
 int histogram_median_biased(Histogram h,int count);
 int histogram_median_biased_top(Histogram h,int count);
@@ -75,7 +75,7 @@ int histogram_mean_nonzero(Histogram h);
 /*int histogram_weighted_mean(Histogram h,Histogram weights); */
 /*int histogram_weighted_mean2(Histogram h); */
 int histogram_mean_weighted(Histogram h);
-int (* histogram_mean_weighted_pyramid)(Histogram h);
+extern int (* histogram_mean_weighted_pyramid)(Histogram h);
 
 int histogram_variance_rot(Histogram h);
 
@@ -90,8 +90,8 @@ void histogram_dump_nonzero(Histogram h);
 int histogram_meanX(Histogram h);
 int histogram_meanY(Histogram h);
 
-int histogram_scaling_parameter;
-int (* histogram_scaling_function)(int param, int value);
+extern int histogram_scaling_parameter;
+extern int (* histogram_scaling_function)(int param, int value);
 int histogram_semisigmoid(int a, int x);
 int histogram_semisigmoid_inv(int a, int x);
 

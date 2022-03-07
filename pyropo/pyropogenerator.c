@@ -558,8 +558,8 @@ static PyObject* _pyropogenerator_getProbabilityField(PyRopoGenerator* self, PyO
  */
 static struct PyMethodDef _pyropogenerator_methods[] =
 {
-  {"classification", NULL},
-  {"markers", NULL},
+  {"classification", NULL, METH_VARARGS},
+  {"markers", NULL, METH_VARARGS},
   {"getImage", (PyCFunction)_pyropogenerator_getImage, 1},
   {"setImage", (PyCFunction)_pyropogenerator_setImage, 1},
   {"threshold", (PyCFunction)_pyropogenerator_threshold, 1},

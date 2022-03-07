@@ -527,10 +527,10 @@ static PyObject* _pyfmiimage_getOriginalValue(PyFmiImage* self, PyObject* args)
  */
 static struct PyMethodDef _pyfmiimage_methods[] =
 {
-  {"offset", NULL},
-  {"gain", NULL},
-  {"undetect", NULL},
-  {"nodata", NULL},
+  {"offset", NULL, METH_VARARGS},
+  {"gain", NULL, METH_VARARGS},
+  {"undetect", NULL, METH_VARARGS},
+  {"nodata", NULL, METH_VARARGS},
   {"addAttribute", (PyCFunction)_pyfmiimage_addAttribute, 1},
   {"getAttribute", (PyCFunction)_pyfmiimage_getAttribute, 1},
   {"getAttributeNames", (PyCFunction)_pyfmiimage_getAttributeNames, 1},

@@ -493,10 +493,10 @@ $(function() {
 <div class="line"><a id="l00522" name="l00522"></a><span class="lineno">  522</span> </div>
 <div class="line"><a id="l00528" name="l00528"></a><span class="lineno">  528</span><span class="keyword">static</span> <span class="keyword">struct </span>PyMethodDef _pyfmiimage_methods[] =</div>
 <div class="line"><a id="l00529" name="l00529"></a><span class="lineno">  529</span>{</div>
-<div class="line"><a id="l00530" name="l00530"></a><span class="lineno">  530</span>  {<span class="stringliteral">&quot;offset&quot;</span>, NULL},</div>
-<div class="line"><a id="l00531" name="l00531"></a><span class="lineno">  531</span>  {<span class="stringliteral">&quot;gain&quot;</span>, NULL},</div>
-<div class="line"><a id="l00532" name="l00532"></a><span class="lineno">  532</span>  {<span class="stringliteral">&quot;undetect&quot;</span>, NULL},</div>
-<div class="line"><a id="l00533" name="l00533"></a><span class="lineno">  533</span>  {<span class="stringliteral">&quot;nodata&quot;</span>, NULL},</div>
+<div class="line"><a id="l00530" name="l00530"></a><span class="lineno">  530</span>  {<span class="stringliteral">&quot;offset&quot;</span>, NULL, METH_VARARGS},</div>
+<div class="line"><a id="l00531" name="l00531"></a><span class="lineno">  531</span>  {<span class="stringliteral">&quot;gain&quot;</span>, NULL, METH_VARARGS},</div>
+<div class="line"><a id="l00532" name="l00532"></a><span class="lineno">  532</span>  {<span class="stringliteral">&quot;undetect&quot;</span>, NULL, METH_VARARGS},</div>
+<div class="line"><a id="l00533" name="l00533"></a><span class="lineno">  533</span>  {<span class="stringliteral">&quot;nodata&quot;</span>, NULL, METH_VARARGS},</div>
 <div class="line"><a id="l00534" name="l00534"></a><span class="lineno">  534</span>  {<span class="stringliteral">&quot;addAttribute&quot;</span>, (PyCFunction)_pyfmiimage_addAttribute, 1},</div>
 <div class="line"><a id="l00535" name="l00535"></a><span class="lineno">  535</span>  {<span class="stringliteral">&quot;getAttribute&quot;</span>, (PyCFunction)_pyfmiimage_getAttribute, 1},</div>
 <div class="line"><a id="l00536" name="l00536"></a><span class="lineno">  536</span>  {<span class="stringliteral">&quot;getAttributeNames&quot;</span>, (PyCFunction)_pyfmiimage_getAttributeNames, 1},</div>

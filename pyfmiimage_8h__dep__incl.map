@@ -1,5 +1,7 @@
 <map id="/github/workspace/pyropo/pyfmiimage.h" name="/github/workspace/pyropo/pyfmiimage.h">
-<area shape="rect" id="node1" title=" " alt="" coords="103,5,273,47"/>
-<area shape="rect" id="node2" href="$pyfmiimage_8c.html" title=" " alt="" coords="5,95,176,136"/>
-<area shape="rect" id="node3" href="$pyropogenerator_8c.html" title=" " alt="" coords="200,95,371,136"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="101,5,271,46"/>
+<area shape="rect" id="Node000002" href="$pyfmiimage_8c.html" title=" " alt="" coords="5,94,175,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,58,113,96,110,92,152,54"/>
+<area shape="rect" id="Node000003" href="$pyropogenerator_8c.html" title=" " alt="" coords="199,94,368,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="221,54,263,92,260,96,217,58"/>
 </map>

@@ -1,10 +1,17 @@
 <map id="/github/workspace/ropo/rave_fmi_image.h" name="/github/workspace/ropo/rave_fmi_image.h">
-<area shape="rect" id="node1" title=" " alt="" coords="253,5,410,47"/>
-<area shape="rect" id="node2" href="$fmi__image_8h_source.html" title=" " alt="" coords="40,95,132,121"/>
-<area shape="rect" id="node5" title=" " alt="" coords="157,95,255,121"/>
-<area shape="rect" id="node6" title=" " alt="" coords="280,95,383,121"/>
-<area shape="rect" id="node7" title=" " alt="" coords="407,95,495,121"/>
-<area shape="rect" id="node8" title=" " alt="" coords="520,95,607,121"/>
-<area shape="rect" id="node3" title=" " alt="" coords="5,169,65,196"/>
-<area shape="rect" id="node4" title=" " alt="" coords="89,169,184,196"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="250,5,407,46"/>
+<area shape="rect" id="Node000002" href="$fmi__image_8h_source.html" title=" " alt="" coords="40,94,131,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="269,49,138,91,136,86,267,44"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="155,94,254,120"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="299,49,237,88,234,83,296,44"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="278,94,379,120"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="331,46,331,79,326,79,326,46"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="403,94,491,120"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="359,44,418,83,415,88,356,49"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="515,94,601,120"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="386,44,509,86,508,91,385,49"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,168,65,193"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,121,54,157,50,154,75,118"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="89,168,184,193"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="96,118,121,154,117,157,92,121"/>
 </map>

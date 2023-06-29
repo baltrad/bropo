@@ -1,11 +1,19 @@
 <map id="/github/workspace/pyropo/pyfmiimage.h" name="/github/workspace/pyropo/pyfmiimage.h">
-<area shape="rect" id="node1" title=" " alt="" coords="246,5,417,47"/>
-<area shape="rect" id="node2" href="$rave__fmi__image_8h.html" title=" " alt="" coords="269,95,393,121"/>
-<area shape="rect" id="node3" href="$fmi__image_8h_source.html" title=" " alt="" coords="40,169,132,196"/>
-<area shape="rect" id="node6" title=" " alt="" coords="157,169,255,196"/>
-<area shape="rect" id="node7" title=" " alt="" coords="280,169,383,196"/>
-<area shape="rect" id="node8" title=" " alt="" coords="407,169,495,196"/>
-<area shape="rect" id="node9" title=" " alt="" coords="520,169,607,196"/>
-<area shape="rect" id="node4" title=" " alt="" coords="5,244,65,271"/>
-<area shape="rect" id="node5" title=" " alt="" coords="89,244,184,271"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="244,5,413,46"/>
+<area shape="rect" id="Node000002" href="$rave__fmi__image_8h.html" title=" " alt="" coords="267,94,390,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="331,46,331,79,326,79,326,46"/>
+<area shape="rect" id="Node000003" href="$fmi__image_8h_source.html" title=" " alt="" coords="40,168,131,193"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="288,123,142,166,140,160,286,118"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="155,168,254,193"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="309,123,239,162,236,158,306,118"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="278,168,379,193"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="331,120,331,153,326,153,326,120"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="403,168,491,193"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="350,118,416,157,413,162,347,122"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="515,168,601,193"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="368,118,506,160,504,165,366,123"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,241,65,267"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="79,195,54,231,50,227,75,192"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="89,241,184,267"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="96,192,121,227,117,231,92,195"/>
 </map>

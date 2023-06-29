@@ -1,10 +1,18 @@
 <map id="/github/workspace/ropo/rave_fmi_image.h" name="/github/workspace/ropo/rave_fmi_image.h">
-<area shape="rect" id="node1" title=" " alt="" coords="232,5,389,47"/>
-<area shape="rect" id="node2" href="$pyfmiimage_8h.html" title=" " alt="" coords="37,95,208,136"/>
-<area shape="rect" id="node5" href="$rave__fmi__image_8c.html" title=" " alt="" coords="232,95,389,136"/>
-<area shape="rect" id="node6" href="$rave__ropo__generator_8h.html" title=" " alt="" coords="413,95,571,136"/>
-<area shape="rect" id="node3" href="$pyfmiimage_8c.html" title=" " alt="" coords="5,184,176,225"/>
-<area shape="rect" id="node4" href="$pyropogenerator_8c.html" title=" " alt="" coords="189,273,360,315"/>
-<area shape="rect" id="node7" href="$pyropogenerator_8h.html" title=" " alt="" coords="251,184,421,225"/>
-<area shape="rect" id="node8" href="$rave__ropo__generator_8c.html" title=" " alt="" coords="445,184,603,225"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="231,5,387,46"/>
+<area shape="rect" id="Node000002" href="$pyfmiimage_8h.html" title=" " alt="" coords="37,94,207,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="254,55,165,96,163,91,252,50"/>
+<area shape="rect" id="Node000005" href="$rave__fmi__image_8c.html" title=" " alt="" coords="231,94,387,135"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="311,61,311,94,306,94,306,61"/>
+<area shape="rect" id="Node000006" href="$rave__ropo__generator_8h.html" title=" " alt="" coords="411,94,567,135"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="364,50,449,91,447,96,361,55"/>
+<area shape="rect" id="Node000003" href="$pyfmiimage_8c.html" title=" " alt="" coords="5,183,175,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="112,150,100,183,95,181,107,148"/>
+<area shape="rect" id="Node000004" href="$pyropogenerator_8c.html" title=" " alt="" coords="189,271,359,312"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="153,144,188,181,261,269,257,273,184,184,150,147"/>
+<area shape="rect" id="Node000007" href="$pyropogenerator_8h.html" title=" " alt="" coords="251,183,420,223"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="443,144,371,185,369,180,440,140"/>
+<area shape="rect" id="Node000008" href="$rave__ropo__generator_8c.html" title=" " alt="" coords="444,183,600,223"/>
+<area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="504,148,517,181,512,183,499,150"/>
+<area shape="poly" id="edge7_Node000007_Node000004" title=" " alt="" coords="315,237,290,272,286,269,311,234"/>
 </map>

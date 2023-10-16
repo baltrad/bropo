@@ -1,7 +1,4 @@
 var searchData=
 [
-  ['_5f_5finit_5f_5f_0',['__init__',['../classropo__quality__plugin_1_1ropo__quality__plugin.html#abdd362d5f799ad16b5d6700efe590290',1,'ropo_quality_plugin::ropo_quality_plugin']]],
-  ['_5fravefmiimage_5ft_1',['_RaveFmiImage_t',['../struct__RaveFmiImage__t.html',1,'']]],
-  ['_5fravefmivolume_5ft_2',['_RaveFmiVolume_t',['../struct__RaveFmiVolume__t.html',1,'']]],
-  ['_5fraveropogenerator_5ft_3',['_RaveRopoGenerator_t',['../struct__RaveRopoGenerator__t.html',1,'']]]
+  ['2_0',['2',['../index.html#detector_clutter2',1,'Clutter 2'],['../index.html#detector_emitter2',1,'Emitter 2'],['../index.html#detector_sun2',1,'Sun 2']]]
 ];

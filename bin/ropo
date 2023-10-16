@@ -69,7 +69,7 @@ def copy_topwhat(ino, outo):
 # @param options variable-length object containing argument names and values
 # @returns scan object containing detected and removed anomalies
 def process_scan(scan, options):
-    if scan.elangle*rd < options.elev:
+    if ((scan.elangle*rd < options.elev) and ('DBZH' in scan.getParameterNames())):
         image = _fmiimage.fromRave(scan, options.params)
         param = scan.getParameter(options.params)
         raw_thresh = int((int(options.threshold)-param.offset) / param.gain)

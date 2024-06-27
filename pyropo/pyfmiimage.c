@@ -22,6 +22,7 @@ along with bRopo.  If not, see <http://www.gnu.org/licenses/>.
  * @author Anders Henja (Swedish Meteorological and Hydrological Institute, SMHI)
  * @date 2011-08-31
  */
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include "pyropo_compat.h"
 #include "Python.h"
 #include <math.h>
@@ -265,7 +266,7 @@ static PyObject* _pyfmiimage_addAttribute(PyFmiImage* self, PyObject* args)
     double value = PyFloat_AsDouble(obj);
     RaveAttribute_setDouble(attr, value);
   } else if (PyString_Check(obj)) {
-    char* value = PyString_AsString(obj);
+    char* value = (char*)PyString_AsString(obj);
     if (!RaveAttribute_setString(attr, value)) {
       raiseException_gotoTag(done, PyExc_AttributeError, "Failed to set string value");
     }
@@ -328,9 +329,9 @@ static PyObject* _pyfmiimage_getAttribute(PyFmiImage* self, PyObject* args)
       npy_intp dims[1];
       RaveAttribute_getLongArray(attribute, &value, &len);
       dims[0] = len;
-      result = PyArray_SimpleNew(1, dims, PyArray_LONG);
+      result = PyArray_SimpleNew(1, dims, NPY_LONG);
       for (i = 0; i < len; i++) {
-        *((long*) PyArray_GETPTR1(result, i)) = value[i];
+        *((long*) PyArray_GETPTR1((PyArrayObject*)result, i)) = value[i];
       }
     } else if (format == RaveAttribute_Format_DoubleArray) {
       double* value = NULL;
@@ -339,9 +340,9 @@ static PyObject* _pyfmiimage_getAttribute(PyFmiImage* self, PyObject* args)
       npy_intp dims[1];
       RaveAttribute_getDoubleArray(attribute, &value, &len);
       dims[0] = len;
-      result = PyArray_SimpleNew(1, dims, PyArray_DOUBLE);
+      result = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
       for (i = 0; i < len; i++) {
-        *((double*) PyArray_GETPTR1(result, i)) = value[i];
+        *((double*) PyArray_GETPTR1((PyArrayObject*)result, i)) = value[i];
       }
     } else {
       RAVE_CRITICAL1("Undefined format on requested attribute %s", name);

@@ -262,8 +262,9 @@ void test_rotation(FmiImage *target,FmiImage *trace,int i,int j,int rec_depth){
   /*  for (i=0;i<target->width;i++) */
   /*  for (j=0;j<target->height;j++){ */
 
-  if ((rec_depth&255)==0)
+  if ((rec_depth&255)==0) {
     fprintf(stderr,"\ti=%d \tj=%d \tdepth=%d\n",i,j,rec_depth); fflush(stderr);
+  }
   dir=ROT_CODE(i,j);
   put_pixel(trace,i,j,0,10+dir);
   put_pixel(target,i,j,0,(rec_depth>>8)&255);

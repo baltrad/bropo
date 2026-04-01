@@ -1,4 +1,7 @@
 var searchData=
 [
-  ['fmi_20anomaly_20detection_20and_20removal_20package_20ropo_0',['bRopo - a BALTRAD version of the FMI Anomaly detection and removal package ROPO',['../index.html',1,'']]]
+  ['c_20api_0',['C API',['../index.html#ropo_api',1,'']]],
+  ['c_20api_20usage_1',['C API Usage',['../index.html#ropo_api_usage',1,'']]],
+  ['clutter_2',['Clutter',['../index.html#detector_clutter',1,'']]],
+  ['clutter_202_3',['Clutter 2',['../index.html#detector_clutter2',1,'']]]
 ];

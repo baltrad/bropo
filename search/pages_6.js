@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['removal_20package_20ropo_0',['bRopo - a BALTRAD version of the FMI Anomaly detection and removal package ROPO',['../index.html',1,'']]],
-  ['ropo_1',['bRopo - a BALTRAD version of the FMI Anomaly detection and removal package ROPO',['../index.html',1,'']]]
+  ['fmi_20anomaly_20detection_20and_20removal_20package_20ropo_0',['bRopo - a BALTRAD version of the FMI Anomaly detection and removal package ROPO',['../index.html',1,'']]],
+  ['fmiimage_1',['FmiImage',['../pyfmiimage_8c.html#autotoc_md0',1,'']]]
 ];

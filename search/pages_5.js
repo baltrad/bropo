@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['package_20ropo_0',['bRopo - a BALTRAD version of the FMI Anomaly detection and removal package ROPO',['../index.html',1,'']]]
+  ['emitter_0',['Emitter',['../index.html#detector_emitter',1,'']]],
+  ['emitter_202_1',['Emitter 2',['../index.html#detector_emitter2',1,'']]]
 ];

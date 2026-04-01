@@ -27,6 +27,7 @@ import unittest
 from FmiImageTest import *
 from PyRopoGeneratorTest import *
 from ropo_quality_plugin_test import *
+from ropo_realtime_test import *
 
 if __name__ == "__main__":
   unittest.main()

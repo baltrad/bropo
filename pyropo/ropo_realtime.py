@@ -43,6 +43,11 @@ from rave_quality_plugin import QUALITY_CONTROL_MODE_ANALYZE
 CONFIG_FILE = os.path.join(os.path.join(os.path.split(os.path.split(_ropogenerator.__file__)[0])[0],
                                         'config'), 'ropo_options.xml')
 
+DEFAULT_PADWIDTH = 3 # Default value for the number of rays to pad on either side of the 360-0 degree boundary. This is used in the PadNrays function, 
+                     # which addresses a design flaw in ropo's original C code that leads to data being removed in this sector. The padwidth value is based on the width of the emitter2 filter, 
+                     # unless explicitly specified by the padwidth value or if the emitter2 filter is not specified in which case the default value is used. The emitter2 filter is chosen as the basis for determining the padwidth 
+                     # because it is typically the widest filter applied by ropo, which is the most aggressive filter applied by ropo and thus determines how much padding is needed. The value can be adjusted as needed, 
+                     # but it should be large enough to ensure that all affected rays are included in the processing.
 # Guideline command-line arguments when creating this functionality
 # --parameters=DBZH --threshold=<see below> --restore-fill=True --restore-thresh=108 
 # --softcut=5,170,180 --speckNormOld=-20,24,8 --emitter2=-10,3,2 --ship=20,8 --speck=-30,12
@@ -87,6 +92,7 @@ def init():
             elif k == "emitter2": opts.emitter2 = eval(site.attrib[k])
             elif k == "ship": opts.ship = eval(site.attrib[k])
             elif k == "speck": opts.speck = eval(site.attrib[k])
+            elif k == "padwidth": opts.padwidth = eval(site.attrib[k])
 
         ARGS[site.tag] = opts                
     initialized = 1
@@ -109,6 +115,7 @@ class options:
         self.emitter2 = None
         self.ship = None
         self.speck = None
+        self.padwidth = None
 
 
 ## Based on the /what/source attribute, find site-specific options/arguments
@@ -254,7 +261,13 @@ def generate(inobj, reprocess_quality_flag=True, quality_control_mode=QUALITY_CO
 def PadNrays(scan, options):
     from numpy import vstack
 
-    width = float(options.emitter2[2])
+    if options.padwidth is not None:
+       width = float(options.padwidth)
+    elif options.emitter2 is not None and len(options.emitter2) > 2:
+       width = float(options.emitter2[2])
+    else:
+       width = DEFAULT_PADWIDTH   
+
     gatew = 360.0 / scan.nrays
     gates = (width / gatew) # / 2  # May as well pad with good margin
     if (gates - 1) > 0.0:
@@ -274,7 +287,6 @@ def PadNrays(scan, options):
     newscan.addParameter(dbzh)
     newscan.elangle = scan.elangle
     return newscan, gates
-
 
 ## Internal function to unwrap a scan from overlapping rays.
 # @param scan input scan object

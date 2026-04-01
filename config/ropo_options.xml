@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <ropo-options>
+  <!-- It is possible to specify padwidth as well, this is used to handle a problem with the 360-0 degree boundary. In most situations emitter2 width (last value) is used but if emitter2 is not specified you can specify padwidth instead -->
   <default threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-10,3,3" ship="20,8" speck="-30,12" />
   <lvrix threshold="COLD" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,3" ship="20,8" speck="-30,12" />
   <plleg threshold="DEFAULT" parameters="DBZH" highest-elev="2.0" restore-thresh="108" restore-fill="True" softcut="5,170,180" speckNormOld="-20,24,8" emitter2="-30,3,3" ship="20,8" speck="-30,12" />

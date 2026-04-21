@@ -21,23 +21,23 @@ fi
 RESULT=0
 
 # RAVES MKF FILE
-RAVE_ROOT_DIR=`fgrep RAVE_ROOT_DIR "${DEF_MK_FILE}" | sed -e"s/\(RAVE_ROOT_DIR=[ \t]*\)//"`
+RAVE_ROOT_DIR=`grep -F RAVE_ROOT_DIR "${DEF_MK_FILE}" | sed -e"s/\(RAVE_ROOT_DIR=[ \t]*\)//"`
 RAVE_ROOT_MKFILE="$RAVE_ROOT_DIR/mkf/def.mk"
 
 # Identify python version
-PYTHON_BIN=`fgrep PYTHON_BIN "${RAVE_ROOT_MKFILE}" | sed -e "s/\(PYTHON_BIN=[ \t]*\)//"`
+PYTHON_BIN=`grep -F PYTHON_BIN "${RAVE_ROOT_MKFILE}" | sed -e "s/\(PYTHON_BIN=[ \t]*\)//"`
 if [ "$PYTHON_BIN" = "" ]; then
   PYTHON_BIN=python
 fi
 
 # HLHDFS MKF FILE
-HLHDF_MKFFILE=`fgrep HLHDF_HLDEF_MK_FILE "${RAVE_ROOT_MKFILE}" | sed -e"s/\(HLHDF_HLDEF_MK_FILE=[ \t]*\)//"`
+HLHDF_MKFFILE=`grep -F HLHDF_HLDEF_MK_FILE "${RAVE_ROOT_MKFILE}" | sed -e"s/\(HLHDF_HLDEF_MK_FILE=[ \t]*\)//"`
 
 # Get HDF5s ld path from hlhdfs mkf file
-HDF5_LDPATH=`fgrep HDF5_LIBDIR "${HLHDF_MKFFILE}" | sed -e"s/\(HDF5_LIBDIR=[ \t]*-L\)//"`
+HDF5_LDPATH=`grep -F HDF5_LIBDIR "${HLHDF_MKFFILE}" | sed -e"s/\(HDF5_LIBDIR=[ \t]*-L\)//"`
 
 # Get HLHDFs libpath from raves mkf file
-HLHDF_LDPATH=`fgrep HLHDF_LIB_DIR "${DEF_MK_FILE}" | sed -e"s/\(HLHDF_LIB_DIR=[ \t]*\)//"`
+HLHDF_LDPATH=`grep -F HLHDF_LIB_DIR "${DEF_MK_FILE}" | sed -e"s/\(HLHDF_LIB_DIR=[ \t]*\)//"`
 
 BNAME=`$PYTHON_BIN -c 'from distutils import util; import sys; print("lib.%s-%s" % (util.get_platform(), sys.version[0:3]))'`
 
